@@ -38,6 +38,31 @@ sudo apt-get update && sudo apt-get install libgl1-mesa-glx graphviz build-essen
 
 You may also need `apt-get install python3.x-dev` where `x` is your Python version (also see [the issue](https://github.com/ArthurConmy/Automatic-Circuit-Discovery/issues/57) and [pygraphviz installation troubleshooting](https://pygraphviz.github.io/documentation/stable/install.html))
 
+**Installation w/o sudo priviledge**
+```bash
+# Create a directory to hold locally compiled software
+mkdir -p $HOME/.local
+export PREFIX=$HOME/.local
+export PATH="$PREFIX/bin:$PATH"
+export LD_LIBRARY_PATH="$PREFIX/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+# Download latest stable Graphviz
+wget https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.2/graphviz-13.1.2.tar.gz
+tar -xvzf graphviz-13.1.2.tar.gz
+cd graphviz-13.1.2
+
+# Configure to install in your home directory
+./autogen.sh
+./configure --prefix=$PREFIX
+make -j$(nproc)
+make install
+cd ..
+
+# Test Graphviz works
+echo "digraph G { A -> B }" | dot -Tsvg > test.svg && file test.svg
+```
+
 #### :apple: Mac OS X
 
 On Mac, you need to let pip (inside poetry) know about the path to the Graphviz libraries.
