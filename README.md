@@ -38,30 +38,32 @@ sudo apt-get update && sudo apt-get install libgl1-mesa-glx graphviz build-essen
 
 You may also need `apt-get install python3.x-dev` where `x` is your Python version (also see [the issue](https://github.com/ArthurConmy/Automatic-Circuit-Discovery/issues/57) and [pygraphviz installation troubleshooting](https://pygraphviz.github.io/documentation/stable/install.html))
 
-**Installation w/o sudo priviledge**
+**Installation w/o sudo priviledge (conda + poetry)**
 ```bash
-# Create a directory to hold locally compiled software
-mkdir -p $HOME/.local
-export PREFIX=$HOME/.local
-export PATH="$PREFIX/bin:$PATH"
-export LD_LIBRARY_PATH="$PREFIX/lib:$LD_LIBRARY_PATH"
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
+conda create -n acdc-env python=3.10
+conda activate acdc-env
 
-# Download latest stable Graphviz
-wget https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.2/graphviz-13.1.2.tar.gz
-tar -xvzf graphviz-13.1.2.tar.gz
-cd graphviz-13.1.2
+# OpenGL runtime + X11 bits (replacement for libgl1-mesa-glx)
+conda install -c conda-forge libglvnd mesalib libglu xorg-libxrender xorg-libxext xorg-libx11
 
-# Configure to install in your home directory
-./autogen.sh
-./configure --prefix=$PREFIX
-make -j$(nproc)
-make install
-cd ..
+# Build tooling (replacement for build-essential)
+conda install -c conda-forge gcc gxx make pkg-config
 
-# Test Graphviz works
-echo "digraph G { A -> B }" | dot -Tsvg > test.svg && file test.svg
+# Graphviz (binaries + headers; replacement for graphviz & graphviz-dev)
+conda install -c conda-forge graphviz pygraphviz
 ```
+
+``` bash
+# Check poetry env points to conda executable
+poetry env info
+
+# Finish installation
+
+# Run inside activated conda env
+poetry env use $(which python)
+poetry install
+```
+
 
 #### :apple: Mac OS X
 
