@@ -151,6 +151,7 @@ class TLACDCExperiment:
         )
 
         self.using_wandb = using_wandb
+        print("Logging in to wandb...")
         if using_wandb:
             wandb.init(
                 entity=wandb_entity_name,

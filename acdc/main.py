@@ -229,6 +229,7 @@ SINGLE_STEP = True if args.single_step else False
 second_metric = None  # some tasks only have one metric
 use_pos_embed = TASK.startswith("tracr")
 
+print("Setting up task...")
 if TASK == "ioi":
     num_examples = 100
     things = get_all_ioi_things(
@@ -322,6 +323,7 @@ else:
     assert WANDB_RUN_NAME is not None, "I want named runs, always"
 
 tl_model.reset_hooks()
+print("Creating ACDC experiment...")
 exp = TLACDCExperiment(
     model=tl_model,
     threshold=THRESHOLD,
