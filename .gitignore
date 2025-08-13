@@ -20,6 +20,9 @@ transformer_lens/scratch.py
 
 .vscode/
 .idea/
+.cache/
+.config/
+.local/
 wandb*
 transformer_lens\.egg*
 MANIFEST.in
@@ -33,6 +36,7 @@ env
 dist/
 docs/build
 .coverage
+cluster_submission/*.sh
 
 # don't really know what these are..
 .hypothesis/
