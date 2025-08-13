@@ -7,7 +7,7 @@ when_to_transfer_output = ON_EXIT
 transfer_input_files =  run_acdc.sh
 transfer_output_files =  /home/somo00003/Automatic-Circuit-Discovery/output/output_$(Clusterid)_$(ProcId)
 
-requirements = ((UidDomain == "cs.uni-saarland.de") &&  (GPUs_GlobalMemoryMb >= 30000))
+requirements = ((UidDomain == "cs.uni-saarland.de") &&  (GPUs_GlobalMemoryMb >= 16000))
 +WantGPUHomeMounted = true
 
 request_GPUs = 1
