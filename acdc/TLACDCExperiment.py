@@ -118,13 +118,14 @@ class TLACDCExperiment:
             skip_edges = "no"
 
         self.corr = TLACDCCorrespondence.setup_from_model(self.model, use_pos_embed=use_pos_embed)
-
+        print("Correspondence setup")
         if early_exit: 
             return
             
         self.reverse_topologically_sort_corr()
         self.current_node = self.corr.first_node()
-        print(f"{self.current_node=}")
+        print("Extracted first node")
+        print(f"First node: {self.current_node=}")
         self.corr = self.corr
 
         self.ds = ds

@@ -57,8 +57,6 @@ conda install -c conda-forge graphviz pygraphviz
 # Check poetry env points to conda executable
 poetry env info
 
-# Finish installation
-
 # Run inside activated conda env
 poetry env use $(which python)
 poetry install

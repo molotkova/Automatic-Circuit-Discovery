@@ -235,6 +235,7 @@ if TASK == "ioi":
     things = get_all_ioi_things(
         num_examples=num_examples, device=DEVICE, metric_name=args.metric
     )
+    print("Dataset and model ready")
 elif TASK == "or_gate":
     num_examples = 1
     seq_len = 1
@@ -364,6 +365,8 @@ exp = TLACDCExperiment(
 import datetime
 exp_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+print("Starting ACDC experiment...")
+print(f"Max num epochs: {args.max_num_epochs}")
 for i in range(args.max_num_epochs):
     exp.step(testing=False)
 
