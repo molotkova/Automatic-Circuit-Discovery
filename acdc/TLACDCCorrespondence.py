@@ -150,6 +150,7 @@ class TLACDCCorrespondence:
             new_downstream_residual_nodes: List[TLACDCInterpNode] = []
 
             # connect attention heads
+            print(f"Connecting attention heads for layer {layer_idx}")
             for head_idx in range(model.cfg.n_heads - 1, -1, -1):
                 # this head writes to all future residual stream things
                 cur_head_name = f"blocks.{layer_idx}.attn.hook_result"
@@ -167,7 +168,7 @@ class TLACDCCorrespondence:
                         edge=Edge(edge_type=EdgeType.ADDITION),
                         safe=False,
                     )
-
+                """
                 for letter in "qkv":
                     hook_letter_name = f"blocks.{layer_idx}.attn.hook_{letter}"
                     hook_letter_slice = TorchIndex([None, None, head_idx])
@@ -194,8 +195,47 @@ class TLACDCCorrespondence:
                         edge=Edge(edge_type=EdgeType.DIRECT_COMPUTATION),
                         safe=False,
                     )
-
                     new_downstream_residual_nodes.append(hook_letter_input_node)
+                """
+
+                # single attention computation node per head (no QKV split)
+                hook_attn_name = f"blocks.{layer_idx}.attn.hook_attn"
+                hook_attn_slice = TorchIndex([None, None, head_idx])
+                hook_attn_node = TLACDCInterpNode(
+                    name=hook_attn_name, 
+                    index=hook_attn_slice, 
+                    incoming_edge_type=EdgeType.DIRECT_COMPUTATION  # ← This is where computation happens
+                )
+                correspondence.add_node(hook_attn_node)
+
+                # single attention input node per head (no QKV split)
+                hook_attn_input_name = f"blocks.{layer_idx}.hook_attn_input"
+                hook_attn_input_slice = TorchIndex([None, None, head_idx])
+                hook_attn_input_node = TLACDCInterpNode(
+                    name=hook_attn_input_name, 
+                    index=hook_attn_input_slice, 
+                    incoming_edge_type=EdgeType.ADDITION
+                )
+                correspondence.add_node(hook_attn_input_node)
+
+                # Connect input to computation node
+                correspondence.add_edge(
+                    parent_node=hook_attn_input_node,
+                    child_node=hook_attn_node,
+                    edge=Edge(edge_type=EdgeType.DIRECT_COMPUTATION),  # ← Computation happens here
+                    safe=False,
+                )
+
+                # Connect computation node to output
+                correspondence.add_edge(
+                    parent_node=hook_attn_node,
+                    child_node=cur_head,
+                    edge=Edge(edge_type=EdgeType.PLACEHOLDER),
+                    safe=False,
+                )
+
+                new_downstream_residual_nodes.append(hook_attn_input_node)
+
             downstream_residual_nodes.extend(new_downstream_residual_nodes)
 
         if use_pos_embed:
