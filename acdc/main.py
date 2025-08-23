@@ -76,6 +76,7 @@ import einops
 from tqdm import tqdm
 import yaml
 import pandas
+import time
 from transformers import AutoModelForCausalLM, AutoConfig, AutoTokenizer
 
 import matplotlib.pyplot as plt
@@ -368,7 +369,11 @@ exp_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 print("Starting ACDC experiment...")
 print(f"Max num epochs: {args.max_num_epochs}")
 for i in range(args.max_num_epochs):
+    print(f"Start epoch {i} of {args.max_num_epochs}")
+    start_time = time.time()
     exp.step(testing=False)
+    end_time = time.time()
+    print(f"Epoch {i} took {end_time - start_time:.2f} seconds")
 
     show(
         exp.corr,
@@ -382,6 +387,7 @@ for i in range(args.max_num_epochs):
 
     print(i, "-" * 50)
     print(exp.count_no_edges())
+    print(f"Finishing epoch {i} of {args.max_num_epochs}")
 
     if i == 0:
         exp.save_edges("edges.pkl")
