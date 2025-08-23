@@ -37,6 +37,7 @@ dist/
 docs/build
 .coverage
 cluster_submission/*.sh
+cluster_submission/logs_cluster/
 
 # don't really know what these are..
 .hypothesis/
