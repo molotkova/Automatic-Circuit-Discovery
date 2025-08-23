@@ -1,0 +1,20 @@
+# test_submission.sub
+universe = docker 
+docker_image = pytorch/pytorch
+getenv = true
+
+requirements = (UidDomain == "cs.uni-saarland.de")
++WantGPUHomeMounted = true
+
+request_GPUs = 0
+request_CPUs = 4
+request_memory = 16G
+
+executable = /bin/bash
+arguments = "-c 'echo Test stdout; echo Test stderr >&2; sleep 10; echo Done'"
+
+output = logs_cluster/test_$(Clusterid).$(ProcId).out
+error  = logs_cluster/test_$(Clusterid).$(ProcId).err
+log    = logs_cluster/test_$(Clusterid).$(ProcId).log
+
+queue
