@@ -3,18 +3,25 @@ universe = docker
 docker_image = pytorch/pytorch
 getenv = true
 
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+stream_output = True
+stream_error = True
+
+transfer_input_files =  test_submission.sh
+
 requirements = (UidDomain == "cs.uni-saarland.de")
 +WantGPUHomeMounted = true
 
 request_GPUs = 0
 request_CPUs = 4
-request_memory = 16G
-
-executable = /bin/bash
-arguments = "-c 'echo Test stdout; echo Test stderr >&2; sleep 10; echo Done'"
+request_memory = 4G
+executable = test_submission.sh
 
 output = logs_cluster/test_$(Clusterid).$(ProcId).out
 error  = logs_cluster/test_$(Clusterid).$(ProcId).err
 log    = logs_cluster/test_$(Clusterid).$(ProcId).log
+
+arguments = ""
 
 queue
