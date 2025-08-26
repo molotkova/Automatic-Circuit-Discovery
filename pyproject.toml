@@ -8,7 +8,8 @@ readme = "README.md"
 packages = [{include = "acdc"}, {include = "subnetwork_probing"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9,<4.0"
+opencv-python-headless = "^4.8.0"
 einops = "^0.6.0"
 numpy = [{ version = "^1.21", python = "<3.10" },
          { version = "^1.23", python = ">=3.10" }]
@@ -18,7 +19,6 @@ transformers = "^4.35.0"
 tokenizers = "^0.15.0"
 tqdm = "^4.64.1"
 pandas = "^1.1.5"
-wandb = "^0.13.5"
 torchtyping = "^0.1.4"
 huggingface-hub = "^0.16.0"
 cmapy = "^0.6.6"
@@ -28,6 +28,8 @@ kaleido = "0.2.1"
 pygraphviz = "^1.11"
 tracr = {git = "https://github.com/deepmind/tracr.git", rev = "e75ecda"}
 transformer-lens = "1.6.1"
+wandb = "^0.21.1"
+protobuf = "^6.32.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
