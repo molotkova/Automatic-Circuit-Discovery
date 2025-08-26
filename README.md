@@ -54,12 +54,21 @@ conda install -c conda-forge graphviz pygraphviz
 ```
 
 ``` bash
+# Run inside activated conda env
+poetry config virtualenvs.in-project true
+poetry env use $(which python)
+
 # Check poetry env points to conda executable
 poetry env info
 
-# Run inside activated conda env
-poetry env use $(which python)
 poetry install
+```
+
+In case of `ImportError: libGL.so.1:`, try the following:
+
+``` bash
+pip uninstall opencv-python
+pip install opencv-python-headless
 ```
 
 
