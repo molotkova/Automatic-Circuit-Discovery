@@ -140,6 +140,13 @@ import argparse
 
 torch.autograd.set_grad_enabled(False)
 
+# Helper function to construct output paths
+def get_output_path(filename, output_dir=None):
+    """Construct output path, redirecting to output_dir if specified"""
+    if output_dir is not None:
+        return os.path.join(output_dir, filename)
+    return filename
+
 # %% [markdown]
 # <h2>ACDC Experiment Setup</h2>
 # <p>We use a `parser to set all the options for the ACDC experiment.
@@ -173,6 +180,8 @@ parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument("--max-num-epochs",type=int, default=100_000)
 parser.add_argument('--single-step', action='store_true', help='Use single step, mostly for testing')
 parser.add_argument("--abs-value-threshold", action='store_true', help='Use the absolute value of the result to check threshold')
+parser.add_argument("--output-dir", type=str, default=None, help="Directory to save output files")
+parser.add_argument("--cluster-job-id", type=str, default=None, help="Cluster job ID for wandb")
 
 if ipython is not None:
     # We are in a notebook
@@ -225,6 +234,8 @@ NAMES_MODE = args.names_mode
 DEVICE = args.device
 RESET_NETWORK = args.reset_network
 SINGLE_STEP = True if args.single_step else False
+OUTPUT_DIR = args.output_dir
+CLUSTER_JOB_ID = args.cluster_job_id
 
 #%% [markdown] 
 # <h2>Setup Task</h2>
@@ -381,7 +392,7 @@ for i in range(args.max_num_epochs):
 
     show(
         exp.corr,
-        f"ims/img_new_{i+1}.png",
+        get_output_path(f"img_new_{i+1}.png", OUTPUT_DIR),
         show_full_index=False,
     )
 
@@ -394,22 +405,22 @@ for i in range(args.max_num_epochs):
     print(f"Finishing epoch {i} of {args.max_num_epochs}")
 
     if i == 0:
-        exp.save_edges("edges.pkl")
+        exp.save_edges(get_output_path("edges.pkl", OUTPUT_DIR))
 
     if exp.current_node is None or SINGLE_STEP:
         show(
             exp.corr,
-            f"ims/ACDC_img_{exp_time}.png",
+            get_output_path(f"ACDC_img_{exp_time}.png", OUTPUT_DIR),
 
         )
         break
 
-exp.save_edges("another_final_edges.pkl")
+exp.save_edges(get_output_path("another_final_edges.pkl", OUTPUT_DIR))
 
 if USING_WANDB:
-    edges_fname = f"edges.pth"
+    edges_fname = get_output_path("edges.pth", OUTPUT_DIR)
     exp.save_edges(edges_fname)
-    artifact = wandb.Artifact(edges_fname, type="dataset")
+    artifact = wandb.Artifact("edges.pth", type="dataset")
     artifact.add_file(edges_fname)
     wandb.log_artifact(artifact)
     os.remove(edges_fname)
@@ -423,6 +434,7 @@ if USING_WANDB:
 
 #%%
 exp.save_subgraph(
+    fpath=get_output_path("final_subgraph.pth", OUTPUT_DIR),
     return_it=True,
 )
 # %%

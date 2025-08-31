@@ -37,8 +37,12 @@ export PYTHONUNBUFFERED=1
 
 poetry config virtualenvs.in-project true
 
-mkdir -p "./output/output_${CLUSTER_ID}_${PROC_ID}"
-echo "Created output directory: ./output/output_${CLUSTER_ID}_${PROC_ID}"
+# Create concatenated cluster_id_job_id string
+CLUSTER_JOB_ID="${CLUSTER_ID}_${PROC_ID}"
+
+# Create output directory using the concatenated ID
+mkdir -p "./output/output_${CLUSTER_JOB_ID}"
+echo "Created output directory: ./output/output_${CLUSTER_JOB_ID}"
 
 # Verify the environment is activated
 echo "Current Python: $(which python)"
@@ -59,4 +63,6 @@ poetry run python acdc/main.py \
     --wandb-project-name acdc-robustness \
     --first-cache-cpu=False \
     --second-cache-cpu=False \
-    --max-num-epochs 100000
+    --max-num-epochs 100000 \
+    --output-dir "./output/output_${CLUSTER_JOB_ID}" \
+    --cluster-job-id "${CLUSTER_JOB_ID}"
