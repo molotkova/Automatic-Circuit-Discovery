@@ -36,8 +36,8 @@ env
 dist/
 docs/build
 .coverage
-cluster_submission/*.sh
 cluster_submission/logs_cluster/
+.env
 
 # don't really know what these are..
 .hypothesis/

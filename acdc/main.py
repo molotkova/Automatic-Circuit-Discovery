@@ -58,6 +58,10 @@ except Exception as e:
 # <h2>Imports etc</h2>
 
 #%%
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 import wandb
 import IPython
 from IPython.display import Image, display
