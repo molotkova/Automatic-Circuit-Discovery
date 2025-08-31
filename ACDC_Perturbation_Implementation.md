@@ -171,7 +171,7 @@ class AddRandomPrefixes(DatasetPerturbation):
             random.seed(seed)
         
         # Generate random prefix indices for each prompt
-        # Same index for corresponding prompts in both datasets
+        # Same index for corresponding prompts in both ioi and abc datasets
         num_prompts = len(ioi_dataset.ioi_prompts)
         prefix_indices = [random.randint(0, len(self.prefixes) - 1) for _ in range(num_prompts)]
         
