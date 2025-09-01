@@ -18,6 +18,7 @@ from acdc.acdc_utils import MatchNLLMetric, frac_correct_metric, logit_diff_metr
 import torch
 from acdc.docstring.utils import AllDataThings
 from acdc.ioi.ioi_dataset import IOIDataset  # NOTE: we now import this LOCALLY so it is deterministic
+from acdc.ioi.perturbations import get_perturbation
 from tqdm import tqdm
 import wandb
 from transformer_lens.HookedTransformer import HookedTransformer
@@ -35,13 +36,22 @@ def get_ioi_gpt2_small(device="cuda"):
     """For backwards compat"""
     return get_gpt2_small(device=device)
 
-def get_all_ioi_things(num_examples, device, metric_name, kl_return_one_element=True):
+def get_all_ioi_things(
+    num_examples, 
+    device, 
+    metric_name, 
+    kl_return_one_element=True,
+    perturbation_name: str = None,
+    perturbation_kwargs: dict = None
+):
     tl_model = get_gpt2_small(device=device)
+    
+    # Create base datasets
     ioi_dataset = IOIDataset(
         prompt_type="ABBA",
         N=num_examples*2,
         nb_templates=1,
-        seed = 0,
+        seed=0,
     )
 
     abc_dataset = (
@@ -49,6 +59,13 @@ def get_all_ioi_things(num_examples, device, metric_name, kl_return_one_element=
         .gen_flipped_prompts(("S", "RAND"), seed=2)
         .gen_flipped_prompts(("S1", "RAND"), seed=3)
     )
+    
+    # Apply perturbation if specified
+    if perturbation_name is not None:
+        perturbation = get_perturbation(perturbation_name)
+        kwargs = perturbation_kwargs or {}
+        print(f"Applying perturbation: {perturbation}")
+        ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
 
     seq_len = ioi_dataset.toks.shape[1]
     assert seq_len == 16, f"Well, I thought ABBA #1 was 16 not {seq_len} tokens long..."

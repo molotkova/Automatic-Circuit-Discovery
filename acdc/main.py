@@ -173,6 +173,10 @@ parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument("--max-num-epochs",type=int, default=100_000)
 parser.add_argument('--single-step', action='store_true', help='Use single step, mostly for testing')
 parser.add_argument("--abs-value-threshold", action='store_true', help='Use the absolute value of the result to check threshold')
+parser.add_argument('--perturbation', type=str, required=False, default=None, 
+                   help='Dataset perturbation to apply (e.g., shuffle_abc_prompts)')
+parser.add_argument('--perturbation-seed', type=int, required=False, default=42,
+                   help='Seed for perturbation randomization')
 
 if ipython is not None:
     # We are in a notebook
@@ -226,6 +230,10 @@ DEVICE = args.device
 RESET_NETWORK = args.reset_network
 SINGLE_STEP = True if args.single_step else False
 
+# Process perturbation arguments
+PERTURBATION = args.perturbation
+PERTURBATION_SEED = args.perturbation_seed
+
 #%% [markdown] 
 # <h2>Setup Task</h2>
 
@@ -238,7 +246,13 @@ print("Setting up task...")
 if TASK == "ioi":
     num_examples = 100
     things = get_all_ioi_things(
-        num_examples=num_examples, device=DEVICE, metric_name=args.metric
+        num_examples=num_examples, 
+        device=DEVICE, 
+        metric_name=args.metric,
+        perturbation_name=PERTURBATION,
+        perturbation_kwargs={
+            "seed": PERTURBATION_SEED
+        } if PERTURBATION else None
     )
     print("Dataset and model ready")
 elif TASK == "or_gate":
@@ -324,7 +338,8 @@ torch.cuda.empty_cache()
 
 # Setup wandb if needed
 if WANDB_RUN_NAME is None or IPython.get_ipython() is not None:
-    WANDB_RUN_NAME = f"{ct()}{'_randomindices' if INDICES_MODE=='random' else ''}_{THRESHOLD}{'_zero' if ZERO_ABLATION else ''}"
+    perturbation_suffix = f"_pert_{PERTURBATION}" if PERTURBATION else ""
+    WANDB_RUN_NAME = f"{ct()}{'_randomindices' if INDICES_MODE=='random' else ''}_{THRESHOLD}{'_zero' if ZERO_ABLATION else ''}{perturbation_suffix}"
 else:
     assert WANDB_RUN_NAME is not None, "I want named runs, always"
 
