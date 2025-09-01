@@ -37,8 +37,9 @@ export PYTHONUNBUFFERED=1
 
 poetry config virtualenvs.in-project true
 
-mkdir -p "./output/output_${CLUSTER_ID}_${PROC_ID}"
-echo "Created output directory: ./output/output_${CLUSTER_ID}_${PROC_ID}"
+# Create output directory with job id
+# mkdir -p "./output/output_${CLUSTER_ID}_${PROC_ID}"
+# echo "Created output directory: ./output/output_${CLUSTER_ID}_${PROC_ID}"
 
 # Verify the environment is activated
 echo "Current Python: $(which python)"
