@@ -60,12 +60,30 @@ def get_all_ioi_things(
         .gen_flipped_prompts(("S1", "RAND"), seed=3)
     )
     
+    # Debug: Print prompt dictionaries before perturbation
+    print("=== BEFORE PERTURBATION ===")
+    print(f"IOI Dataset prompts (first 3):")
+    for i, prompt in enumerate(ioi_dataset.ioi_prompts[:3]):
+        print(f"  {i}: {prompt}")
+    print(f"ABC Dataset prompts (first 3):")
+    for i, prompt in enumerate(abc_dataset.ioi_prompts[:3]):
+        print(f"  {i}: {prompt}")
+    
     # Apply perturbation if specified
     if perturbation_name is not None:
         perturbation = get_perturbation(perturbation_name)
         kwargs = perturbation_kwargs or {}
         print(f"Applying perturbation: {perturbation}")
         ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
+        
+        # Debug: Print prompt dictionaries after perturbation
+        print("=== AFTER PERTURBATION ===")
+        print(f"IOI Dataset prompts (first 3):")
+        for i, prompt in enumerate(ioi_dataset.ioi_prompts[:3]):
+            print(f"  {i}: {prompt}")
+        print(f"ABC Dataset prompts (first 3):")
+        for i, prompt in enumerate(abc_dataset.ioi_prompts[:3]):
+            print(f"  {i}: {prompt}")
 
     seq_len = ioi_dataset.toks.shape[1]
     assert seq_len == 16, f"Well, I thought ABBA #1 was 16 not {seq_len} tokens long..."
