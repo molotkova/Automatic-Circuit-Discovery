@@ -65,25 +65,29 @@ def get_all_ioi_things(
     print(f"IOI Dataset prompts (first 3):")
     for i, prompt in enumerate(ioi_dataset.ioi_prompts[:3]):
         print(f"  {i}: {prompt}")
+        print(f"    io_tokenID: {ioi_dataset.io_tokenIDs[i]}, s_tokenID: {ioi_dataset.s_tokenIDs[i]}")
     print(f"ABC Dataset prompts (first 3):")
     for i, prompt in enumerate(abc_dataset.ioi_prompts[:3]):
         print(f"  {i}: {prompt}")
+        print(f"    io_tokenID: {abc_dataset.io_tokenIDs[i]}, s_tokenID: {abc_dataset.s_tokenIDs[i]}")
     
     # Apply perturbation if specified
     if perturbation_name is not None:
         perturbation = get_perturbation(perturbation_name)
         kwargs = perturbation_kwargs or {}
-        print(f"Applying perturbation: {perturbation}")
+        print(f"\nApplying perturbation: {perturbation}")
         ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
         
         # Debug: Print prompt dictionaries after perturbation
-        print("=== AFTER PERTURBATION ===")
+        print("\n=== AFTER PERTURBATION ===")
         print(f"IOI Dataset prompts (first 3):")
         for i, prompt in enumerate(ioi_dataset.ioi_prompts[:3]):
             print(f"  {i}: {prompt}")
+            print(f"    io_tokenID: {ioi_dataset.io_tokenIDs[i]}, s_tokenID: {ioi_dataset.s_tokenIDs[i]}")
         print(f"ABC Dataset prompts (first 3):")
         for i, prompt in enumerate(abc_dataset.ioi_prompts[:3]):
             print(f"  {i}: {prompt}")
+            print(f"    io_tokenID: {abc_dataset.io_tokenIDs[i]}, s_tokenID: {abc_dataset.s_tokenIDs[i]}")
 
     seq_len = ioi_dataset.toks.shape[1]
     assert seq_len == 16, f"Well, I thought ABBA #1 was 16 not {seq_len} tokens long..."
