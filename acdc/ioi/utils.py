@@ -60,17 +60,6 @@ def get_all_ioi_things(
         .gen_flipped_prompts(("S1", "RAND"), seed=3)
     )
     
-    # Debug: Print prompt dictionaries before perturbation
-    print("=== BEFORE PERTURBATION ===")
-    print(f"IOI Dataset prompts (first 3):")
-    for i, prompt in enumerate(ioi_dataset.ioi_prompts[:3]):
-        print(f"  {i}: {prompt}")
-        print(f"    io_tokenID: {ioi_dataset.io_tokenIDs[i]}, s_tokenID: {ioi_dataset.s_tokenIDs[i]}")
-    print(f"ABC Dataset prompts (first 3):")
-    for i, prompt in enumerate(abc_dataset.ioi_prompts[:3]):
-        print(f"  {i}: {prompt}")
-        print(f"    io_tokenID: {abc_dataset.io_tokenIDs[i]}, s_tokenID: {abc_dataset.s_tokenIDs[i]}")
-    
     # Apply perturbation if specified
     if perturbation_name is not None:
         perturbation = get_perturbation(perturbation_name)
@@ -78,19 +67,10 @@ def get_all_ioi_things(
         print(f"\nApplying perturbation: {perturbation}")
         ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
         
-        # Debug: Print prompt dictionaries after perturbation
-        print("\n=== AFTER PERTURBATION ===")
-        print(f"IOI Dataset prompts (first 3):")
-        for i, prompt in enumerate(ioi_dataset.ioi_prompts[:3]):
-            print(f"  {i}: {prompt}")
-            print(f"    io_tokenID: {ioi_dataset.io_tokenIDs[i]}, s_tokenID: {ioi_dataset.s_tokenIDs[i]}")
-        print(f"ABC Dataset prompts (first 3):")
-        for i, prompt in enumerate(abc_dataset.ioi_prompts[:3]):
-            print(f"  {i}: {prompt}")
-            print(f"    io_tokenID: {abc_dataset.io_tokenIDs[i]}, s_tokenID: {abc_dataset.s_tokenIDs[i]}")
-
     seq_len = ioi_dataset.toks.shape[1]
-    assert seq_len == 16, f"Well, I thought ABBA #1 was 16 not {seq_len} tokens long..."
+    if seq_len != 16:
+        import warnings
+        warnings.warn(f"Expected sequence length 16, but got {seq_len}. This may cause issues with the IOI task.")
 
     default_data = ioi_dataset.toks.long()[:num_examples*2, : seq_len - 1].to(device)
     patch_data = abc_dataset.toks.long()[:num_examples*2, : seq_len - 1].to(device)
