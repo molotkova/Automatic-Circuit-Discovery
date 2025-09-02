@@ -66,11 +66,11 @@ class AddRandomPrefixes(DatasetPerturbation):
             description="Add random prefixes to both datasets, ensuring corresponding prompts get same prefix"
         )
         self.prefixes = [
-            "It was a quiet afternoon.",
-            "Everything seemed ordinary at first.",
-            "The day had just begun.",
-            "Nothing unusual had happened so far.",
-            "It was time for a short break."
+            "It was a quiet day.",
+            "Nothing special happened so far.",
+            "The story began quite suddenly.",
+            "The sun was shining brightly.",
+            "The evening felt very calm."
         ]
     
     def apply(self, ioi_dataset: IOIDataset, abc_dataset: IOIDataset, **kwargs) -> Tuple[IOIDataset, IOIDataset]:
