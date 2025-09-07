@@ -9,6 +9,9 @@ Usage:
     python ioi_perturbation_evaluation.py --run1-id <run1_id> --run2-id <run2_id>
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import argparse
 import sys
 from pathlib import Path
@@ -25,11 +28,12 @@ from acdc.TLACDCInterpNode import TLACDCInterpNode
 from acdc.TLACDCEdge import TorchIndex, Edge
 from acdc.acdc_utils import get_present_nodes, filter_nodes
 from acdc.ioi.utils import get_all_ioi_things
+from acdc.TLACDCExperiment import TLACDCExperiment
 
 
 def load_single_acdc_run(
     run_id: str,
-    project_name: str = "remix_school-of-rock/acdc",
+    project_name: str = "personal-14/acdc-robustness",
     device: str = "gpu"
 ) -> TLACDCCorrespondence:
     """
@@ -44,8 +48,26 @@ def load_single_acdc_run(
         TLACDCCorrespondence object containing the graph from the run
     """
     # Setup IOI things for the experiment
-    num_examples = 10  # Use fewer examples for faster loading
+    num_examples = 100  # Use fewer examples for faster loading
     things = get_all_ioi_things(num_examples=num_examples, device=device, metric_name="kl_div")
+    
+    # Create the experiment object (similar to roc_plot_generator.py)
+    things.tl_model.reset_hooks()
+    exp = TLACDCExperiment(
+        model=things.tl_model,
+        threshold=100_000,
+        early_exit=False,
+        using_wandb=False,
+        zero_ablation=False,
+        ds=things.test_data,
+        ref_ds=things.test_patch_data,
+        metric=things.validation_metric,
+        second_metric=None,
+        verbose=False,
+        use_pos_embed=False,
+        online_cache_cpu=False,
+        corrupted_cache_cpu=False,
+    )
     
     # Create a filter to get the specific run
     pre_run_filter = {
@@ -55,8 +77,8 @@ def load_single_acdc_run(
     
     # Load the run using get_acdc_runs
     corrs, ids = get_acdc_runs(
-        exp=None,  # We'll create the experiment later if needed
-        things=None,
+        exp=exp,
+        things=things,
         project_name=project_name,
         pre_run_filter=pre_run_filter,
         run_filter=None,
@@ -74,7 +96,7 @@ def load_single_acdc_run(
     return correspondence
 
 
-def get_present_edges(correspondence: TLACDCCorrespondence) -> Set[Tuple[str, TorchIndex, str, TorchIndex]]:
+def get_present_edges_from_correspondence(correspondence: TLACDCCorrespondence) -> Set[Tuple[str, TorchIndex, str, TorchIndex]]:
     """
     Extract all present edges from a correspondence object.
     
@@ -114,7 +136,7 @@ def compute_jaccard_index_edges(
     """
     Compute the Jaccard index for edges between two correspondence objects.
     
-    The Jaccard index is defined as |A ∩ B| / |A ∪ B| where A and B are sets of edges.
+    The Jaccard index is defined as |A * B| / |A + B| where A and B are sets of edges.
     
     Args:
         corr1: First correspondence object
@@ -123,8 +145,8 @@ def compute_jaccard_index_edges(
     Returns:
         Jaccard index for edges (float between 0 and 1)
     """
-    edges1 = get_present_edges(corr1)
-    edges2 = get_present_edges(corr2)
+    edges1 = get_present_edges_from_correspondence(corr1)
+    edges2 = get_present_edges_from_correspondence(corr2)
     
     intersection = edges1.intersection(edges2)
     union = edges1.union(edges2)
@@ -143,7 +165,7 @@ def compute_jaccard_index_nodes(
     """
     Compute the Jaccard index for nodes between two correspondence objects.
     
-    The Jaccard index is defined as |A ∩ B| / |A ∪ B| where A and B are sets of nodes.
+    The Jaccard index is defined as |A * B| / |A + B| where A and B are sets of nodes.
     
     Args:
         corr1: First correspondence object
@@ -163,24 +185,6 @@ def compute_jaccard_index_nodes(
     
     jaccard_index = len(intersection) / len(union)
     return jaccard_index
-
-
-def print_graph_statistics(correspondence: TLACDCCorrespondence, name: str):
-    """
-    Print statistics about a correspondence graph.
-    
-    Args:
-        correspondence: TLACDCCorrespondence object
-        name: Name to display for this graph
-    """
-    present_edges = get_present_edges(correspondence)
-    present_nodes = get_present_nodes_from_correspondence(correspondence)
-    
-    print(f"\n{name} Graph Statistics:")
-    print(f"  Present edges: {len(present_edges)}")
-    print(f"  Present nodes: {len(present_nodes)}")
-    print(f"  Total edges in graph: {len(correspondence.all_edges())}")
-
 
 def main():
     """Main function to run the IOI perturbation evaluation."""
@@ -202,14 +206,14 @@ def main():
     parser.add_argument(
         "--project-name",
         type=str,
-        default="remix_school-of-rock/acdc",
-        help="Weights & Biases project name (default: remix_school-of-rock/acdc)"
+        default="personal-14/acdc-robustness",
+        help="Weights & Biases project name"
     )
     parser.add_argument(
         "--device",
         type=str,
-        default="cpu",
-        help="Device to run computations on (default: cpu)"
+        default="gpu",
+        help="Device to run computations on"
     )
     
     args = parser.parse_args()
@@ -227,10 +231,6 @@ def main():
         corr1 = load_single_acdc_run(args.run1_id, args.project_name, args.device)
         corr2 = load_single_acdc_run(args.run2_id, args.project_name, args.device)
         
-        # Print statistics for both graphs
-        print_graph_statistics(corr1, "First")
-        print_graph_statistics(corr2, "Second")
-        
         # Compute Jaccard indices
         print("\nComputing Jaccard indices...")
         edge_jaccard = compute_jaccard_index_edges(corr1, corr2)
@@ -241,25 +241,6 @@ def main():
         print("=" * 30)
         print(f"Edge Jaccard Index: {edge_jaccard:.4f}")
         print(f"Node Jaccard Index: {node_jaccard:.4f}")
-        
-        # Interpretation
-        print("\nInterpretation:")
-        print(f"Edge similarity: {edge_jaccard:.1%}")
-        print(f"Node similarity: {node_jaccard:.1%}")
-        
-        if edge_jaccard > 0.8:
-            print("High edge similarity - graphs are very similar in structure")
-        elif edge_jaccard > 0.5:
-            print("Moderate edge similarity - graphs share significant structure")
-        else:
-            print("Low edge similarity - graphs are quite different")
-            
-        if node_jaccard > 0.8:
-            print("High node similarity - graphs use very similar nodes")
-        elif node_jaccard > 0.5:
-            print("Moderate node similarity - graphs share many nodes")
-        else:
-            print("Low node similarity - graphs use quite different nodes")
             
     except Exception as e:
         print(f"Error: {e}")
