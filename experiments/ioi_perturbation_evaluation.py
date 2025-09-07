@@ -34,7 +34,7 @@ from acdc.TLACDCExperiment import TLACDCExperiment
 def load_single_acdc_run(
     run_id: str,
     project_name: str = "personal-14/acdc-robustness",
-    device: str = "gpu"
+    device: str = "cuda"
 ) -> TLACDCCorrespondence:
     """
     Load a single ACDC run from Weights & Biases by run ID.
@@ -212,7 +212,7 @@ def main():
     parser.add_argument(
         "--device",
         type=str,
-        default="gpu",
+        default="cuda",
         help="Device to run computations on"
     )
     
@@ -225,26 +225,21 @@ def main():
     print(f"Project: {args.project_name}")
     print(f"Device: {args.device}")
     
-    try:
-        # Load the two ACDC runs
-        print("\nLoading ACDC runs...")
-        corr1 = load_single_acdc_run(args.run1_id, args.project_name, args.device)
-        corr2 = load_single_acdc_run(args.run2_id, args.project_name, args.device)
-        
-        # Compute Jaccard indices
-        print("\nComputing Jaccard indices...")
-        edge_jaccard = compute_jaccard_index_edges(corr1, corr2)
-        node_jaccard = compute_jaccard_index_nodes(corr1, corr2)
-        
-        # Print results
-        print("\nResults:")
-        print("=" * 30)
-        print(f"Edge Jaccard Index: {edge_jaccard:.4f}")
-        print(f"Node Jaccard Index: {node_jaccard:.4f}")
-            
-    except Exception as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+    # Load the two ACDC runs
+    print("\nLoading ACDC runs...")
+    corr1 = load_single_acdc_run(args.run1_id, args.project_name, args.device)
+    corr2 = load_single_acdc_run(args.run2_id, args.project_name, args.device)
+    
+    # Compute Jaccard indices
+    print("\nComputing Jaccard indices...")
+    edge_jaccard = compute_jaccard_index_edges(corr1, corr2)
+    node_jaccard = compute_jaccard_index_nodes(corr1, corr2)
+    
+    # Print results
+    print("\nResults:")
+    print("=" * 30)
+    print(f"Edge Jaccard Index: {edge_jaccard:.4f}")
+    print(f"Node Jaccard Index: {node_jaccard:.4f}")
 
 
 if __name__ == "__main__":
