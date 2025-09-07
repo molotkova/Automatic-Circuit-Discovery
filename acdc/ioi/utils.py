@@ -60,12 +60,40 @@ def get_all_ioi_things(
         .gen_flipped_prompts(("S1", "RAND"), seed=3)
     )
     
+    # Debug: Print texts before perturbation
+    print(f"\n=== TEXTS BEFORE PERTURBATION ===")
+    print(f"IOI Dataset texts (first 5):")
+    for i in range(5):
+        text = ioi_dataset.ioi_prompts[i]['text']
+        print(f"  {i}: '{text}'")
+        print(f"    Length: {len(text)} chars")
+    
+    print(f"\nABC Dataset texts (first 5):")
+    for i in range(5):
+        text = abc_dataset.ioi_prompts[i]['text']
+        print(f"  {i}: '{text}'")
+        print(f"    Length: {len(text)} chars")
+    
     # Apply perturbation if specified
     if perturbation_name is not None:
         perturbation = get_perturbation(perturbation_name)
         kwargs = perturbation_kwargs or {}
         print(f"\nApplying perturbation: {perturbation}")
         ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
+        
+        # Debug: Print texts after perturbation
+        print(f"\n=== TEXTS AFTER PERTURBATION ===")
+        print(f"IOI Dataset texts (first 5):")
+        for i in range(5):
+            text = ioi_dataset.ioi_prompts[i]['text']
+            print(f"  {i}: '{text}'")
+            print(f"    Length: {len(text)} chars")
+        
+        print(f"\nABC Dataset texts (first 5):")
+        for i in range(5):
+            text = abc_dataset.ioi_prompts[i]['text']
+            print(f"  {i}: '{text}'")
+            print(f"    Length: {len(text)} chars")
         
     seq_len = ioi_dataset.toks.shape[1]
     if seq_len != 16:
