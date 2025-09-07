@@ -56,7 +56,7 @@ def load_single_acdc_run(
     # Load the run using get_acdc_runs
     corrs, ids = get_acdc_runs(
         exp=None,  # We'll create the experiment later if needed
-        things=things,
+        things=None,
         project_name=project_name,
         pre_run_filter=pre_run_filter,
         run_filter=None,
