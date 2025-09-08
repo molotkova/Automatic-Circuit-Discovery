@@ -9,6 +9,7 @@ Usage:
     python ioi_perturbation_evaluation.py --run1-id <run1_id> --run2-id <run2_id>
 """
 
+import gc
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -17,6 +18,7 @@ import sys
 from pathlib import Path
 from typing import Set, Tuple, Dict, Any, Optional
 import wandb
+import torch
 
 # Add the project root to the path
 # project_root = Path(__file__).resolve().parent.parent
@@ -29,6 +31,8 @@ from acdc.TLACDCEdge import TorchIndex, Edge
 from acdc.acdc_utils import get_present_nodes, filter_nodes
 from acdc.ioi.utils import get_all_ioi_things
 from acdc.TLACDCExperiment import TLACDCExperiment
+
+torch.autograd.set_grad_enabled(False)
 
 
 def load_single_acdc_run(
@@ -51,10 +55,18 @@ def load_single_acdc_run(
     num_examples = 100  # Use fewer examples for faster loading
     things = get_all_ioi_things(num_examples=num_examples, device=device, metric_name="kl_div")
     
+    tl_model = things.tl_model
+    tl_model.reset_hooks()
+
+    # Save some mem
+    gc.collect()
+    torch.cuda.empty_cache()
+
     # Create the experiment object (similar to roc_plot_generator.py)
-    things.tl_model.reset_hooks()
+    tl_model.reset_hooks()
+
     exp = TLACDCExperiment(
-        model=things.tl_model,
+        model=tl_model,
         threshold=100_000,
         early_exit=False,
         using_wandb=False,
@@ -63,7 +75,7 @@ def load_single_acdc_run(
         ref_ds=things.test_patch_data,
         metric=things.validation_metric,
         second_metric=None,
-        verbose=False,
+        verbose=True,
         use_pos_embed=False,
         online_cache_cpu=False,
         corrupted_cache_cpu=False,
@@ -71,8 +83,7 @@ def load_single_acdc_run(
     
     # Create a filter to get the specific run
     pre_run_filter = {
-        "display_name": run_id,
-        "state": "finished"
+        "name": run_id
     }
     
     # Load the run using get_acdc_runs
