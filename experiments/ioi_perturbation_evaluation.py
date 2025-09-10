@@ -20,10 +20,6 @@ from typing import Set, Tuple, Dict, Any, Optional
 import wandb
 import torch
 
-# Add the project root to the path
-# project_root = Path(__file__).resolve().parent.parent
-# sys.path.append(str(project_root))
-
 from utils.utils import get_acdc_runs
 from acdc.TLACDCCorrespondence import TLACDCCorrespondence
 from acdc.TLACDCInterpNode import TLACDCInterpNode
@@ -197,6 +193,66 @@ def compute_jaccard_index_nodes(
     jaccard_index = len(intersection) / len(union)
     return jaccard_index
 
+
+def compute_logit_diff_relative_change(
+    corr1: TLACDCCorrespondence,
+    corr2: TLACDCCorrespondence,
+    exp: TLACDCExperiment,
+    things: Any,
+    device: str = "cuda"
+) -> float:
+    """
+    Compute the relative change in logit difference between two circuit graphs.
+    
+    The relative change is defined as:
+    |logit_diff_2 - logit_diff_1| / |logit_diff_1|
+    
+    Args:
+        corr1: First correspondence object (baseline circuit)
+        corr2: Second correspondence object (comparison circuit)
+        exp: TLACDCExperiment object with proper setup
+        things: Object containing test_metrics and test_data
+        device: Device to run computations on
+        
+    Returns:
+        Relative change in logit difference (float >= 0)
+    """
+    # Ensure corrupted cache is set up before computing metrics
+    exp.setup_corrupted_cache()
+    
+    # Define the logit difference metric function
+    def get_logit_diff_metric(data: torch.Tensor) -> dict[str, float]:
+        """Get logit difference metric using the test_metrics from things"""
+        return {f"test_{name}": fn(data).item() for name, fn in things.test_metrics.items()}
+    
+    # Compute logit difference for first circuit
+    print("Computing logit difference for circuit 1...")
+    metrics1 = exp.call_metric_with_corr(corr1, get_logit_diff_metric, things.test_data)
+    logit_diff_1 = metrics1["test_logit_diff"]
+    
+    # Compute logit difference for second circuit  
+    print("Computing logit difference for circuit 2...")
+    metrics2 = exp.call_metric_with_corr(corr2, get_logit_diff_metric, things.test_data)
+    logit_diff_2 = metrics2["test_logit_diff"]
+    
+    # Compute relative change
+    absolute_diff = abs(logit_diff_2 - logit_diff_1)
+    absolute_baseline = abs(logit_diff_1)
+    
+    if absolute_baseline == 0:
+        # If baseline is zero, return the absolute difference
+        relative_change = absolute_diff
+        print(f"Warning: Baseline logit difference is 0, returning absolute difference: {absolute_diff}")
+    else:
+        relative_change = absolute_diff / absolute_baseline
+    
+    print(f"Logit diff 1: {logit_diff_1:.6f}")
+    print(f"Logit diff 2: {logit_diff_2:.6f}")
+    print(f"Absolute difference: {absolute_diff:.6f}")
+    print(f"Relative change: {relative_change:.6f}")
+    
+    return relative_change
+
 def main():
     """Main function to run the IOI perturbation evaluation."""
     parser = argparse.ArgumentParser(
@@ -226,6 +282,11 @@ def main():
         default="cuda",
         help="Device to run computations on"
     )
+    parser.add_argument(
+        "--compute-logit-diff",
+        action="store_true",
+        help="Compute logit difference relative change between circuits"
+    )
     
     args = parser.parse_args()
     
@@ -251,6 +312,35 @@ def main():
     print("=" * 30)
     print(f"Edge Jaccard Index: {edge_jaccard:.4f}")
     print(f"Node Jaccard Index: {node_jaccard:.4f}")
+    
+    # Compute logit difference relative change if requested
+    if args.compute_logit_diff:
+        print("\nSetting up experiment for logit difference computation...")
+        num_examples = 100
+        things = get_all_ioi_things(num_examples=num_examples, device=args.device, metric_name="logit_diff")
+        
+        exp = TLACDCExperiment(
+            model=things.tl_model,
+            threshold=100_000,
+            early_exit=False,
+            using_wandb=False,
+            zero_ablation=False,
+            ds=things.test_data,
+            ref_ds=things.test_patch_data,
+            metric=things.validation_metric,
+            second_metric=None,
+            verbose=True,
+            use_pos_embed=False,
+            online_cache_cpu=False,
+            corrupted_cache_cpu=False,
+        )
+        
+        print("\nComputing logit difference relative change...")
+        logit_diff_relative_change = compute_logit_diff_relative_change(
+            corr1, corr2, exp, things, args.device
+        )
+        
+        print(f"Logit Difference Relative Change: {logit_diff_relative_change:.6f}")
 
 
 if __name__ == "__main__":
