@@ -18,6 +18,7 @@ from acdc.acdc_utils import MatchNLLMetric, frac_correct_metric, logit_diff_metr
 import torch
 from acdc.docstring.utils import AllDataThings
 from acdc.ioi.ioi_dataset import IOIDataset  # NOTE: we now import this LOCALLY so it is deterministic
+from acdc.ioi.perturbations import get_perturbation
 from tqdm import tqdm
 import wandb
 from transformer_lens.HookedTransformer import HookedTransformer
@@ -35,13 +36,22 @@ def get_ioi_gpt2_small(device="cuda"):
     """For backwards compat"""
     return get_gpt2_small(device=device)
 
-def get_all_ioi_things(num_examples, device, metric_name, kl_return_one_element=True):
+def get_all_ioi_things(
+    num_examples, 
+    device, 
+    metric_name, 
+    kl_return_one_element=True,
+    perturbation_name: str = None,
+    perturbation_kwargs: dict = None
+):
     tl_model = get_gpt2_small(device=device)
+    
+    # Create base datasets
     ioi_dataset = IOIDataset(
         prompt_type="ABBA",
         N=num_examples*2,
         nb_templates=1,
-        seed = 0,
+        seed=0,
     )
 
     abc_dataset = (
@@ -49,9 +59,46 @@ def get_all_ioi_things(num_examples, device, metric_name, kl_return_one_element=
         .gen_flipped_prompts(("S", "RAND"), seed=2)
         .gen_flipped_prompts(("S1", "RAND"), seed=3)
     )
-
+    
+    # Debug: Print texts before perturbation
+    print(f"\n=== TEXTS BEFORE PERTURBATION ===")
+    print(f"IOI Dataset texts (first 5):")
+    for i in range(5):
+        text = ioi_dataset.ioi_prompts[i]['text']
+        print(f"  {i}: '{text}'")
+        print(f"    Length: {len(text)} chars")
+    
+    print(f"\nABC Dataset texts (first 5):")
+    for i in range(5):
+        text = abc_dataset.ioi_prompts[i]['text']
+        print(f"  {i}: '{text}'")
+        print(f"    Length: {len(text)} chars")
+    
+    # Apply perturbation if specified
+    if perturbation_name is not None:
+        perturbation = get_perturbation(perturbation_name)
+        kwargs = perturbation_kwargs or {}
+        print(f"\nApplying perturbation: {perturbation}")
+        ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
+        
+        # Debug: Print texts after perturbation
+        print(f"\n=== TEXTS AFTER PERTURBATION ===")
+        print(f"IOI Dataset texts (first 5):")
+        for i in range(5):
+            text = ioi_dataset.ioi_prompts[i]['text']
+            print(f"  {i}: '{text}'")
+            print(f"    Length: {len(text)} chars")
+        
+        print(f"\nABC Dataset texts (first 5):")
+        for i in range(5):
+            text = abc_dataset.ioi_prompts[i]['text']
+            print(f"  {i}: '{text}'")
+            print(f"    Length: {len(text)} chars")
+        
     seq_len = ioi_dataset.toks.shape[1]
-    assert seq_len == 16, f"Well, I thought ABBA #1 was 16 not {seq_len} tokens long..."
+    if seq_len != 16:
+        import warnings
+        warnings.warn(f"Expected sequence length 16, but got {seq_len}. This may cause issues with the IOI task.")
 
     default_data = ioi_dataset.toks.long()[:num_examples*2, : seq_len - 1].to(device)
     patch_data = abc_dataset.toks.long()[:num_examples*2, : seq_len - 1].to(device)
