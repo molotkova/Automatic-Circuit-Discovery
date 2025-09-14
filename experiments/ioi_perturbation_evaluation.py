@@ -221,18 +221,18 @@ def compute_logit_diff_relative_change(
     exp.setup_corrupted_cache()
     
     # Define the logit difference metric function
-    def get_logit_diff_metric(data: torch.Tensor) -> dict[str, float]:
+    def get_all_test_metrics(data: torch.Tensor) -> dict[str, float]:
         """Get logit difference metric using the test_metrics from things"""
         return {f"test_{name}": fn(data).item() for name, fn in things.test_metrics.items()}
     
     # Compute logit difference for first circuit
     print("Computing logit difference for circuit 1...")
-    metrics1 = exp.call_metric_with_corr(corr1, get_logit_diff_metric, things.test_data)
+    metrics1 = exp.call_metric_with_corr(corr1, get_all_test_metrics, things.test_data)
     logit_diff_1 = metrics1["test_logit_diff"]
     
     # Compute logit difference for second circuit  
     print("Computing logit difference for circuit 2...")
-    metrics2 = exp.call_metric_with_corr(corr2, get_logit_diff_metric, things.test_data)
+    metrics2 = exp.call_metric_with_corr(corr2, get_all_test_metrics, things.test_data)
     logit_diff_2 = metrics2["test_logit_diff"]
     
     # Compute relative change
