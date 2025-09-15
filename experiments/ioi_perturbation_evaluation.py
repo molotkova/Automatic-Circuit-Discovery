@@ -256,7 +256,7 @@ def compute_logit_diff_relative_change(
 def main():
     """Main function to run the IOI perturbation evaluation."""
     parser = argparse.ArgumentParser(
-        description="Compare two ACDC runs using Jaccard indices for edges and nodes"
+        description="Compare two ACDC runs using Jaccard indices for edges and nodes, and compute logit difference relative change"
     )
     parser.add_argument(
         "--run1-id", 
@@ -281,11 +281,6 @@ def main():
         type=str,
         default="cuda",
         help="Device to run computations on"
-    )
-    parser.add_argument(
-        "--compute-logit-diff",
-        action="store_true",
-        help="Compute logit difference relative change between circuits"
     )
     
     args = parser.parse_args()
@@ -313,34 +308,33 @@ def main():
     print(f"Edge Jaccard Index: {edge_jaccard:.4f}")
     print(f"Node Jaccard Index: {node_jaccard:.4f}")
     
-    # Compute logit difference relative change if requested
-    if args.compute_logit_diff:
-        print("\nSetting up experiment for logit difference computation...")
-        num_examples = 100
-        things = get_all_ioi_things(num_examples=num_examples, device=args.device, metric_name="logit_diff")
-        
-        exp = TLACDCExperiment(
-            model=things.tl_model,
-            threshold=100_000,
-            early_exit=False,
-            using_wandb=False,
-            zero_ablation=False,
-            ds=things.test_data,
-            ref_ds=things.test_patch_data,
-            metric=things.validation_metric,
-            second_metric=None,
-            verbose=True,
-            use_pos_embed=False,
-            online_cache_cpu=False,
-            corrupted_cache_cpu=False,
-        )
-        
-        print("\nComputing logit difference relative change...")
-        logit_diff_relative_change = compute_logit_diff_relative_change(
-            corr1, corr2, exp, things, args.device
-        )
-        
-        print(f"Logit Difference Relative Change: {logit_diff_relative_change:.6f}")
+    # Compute logit difference relative change
+    print("\nSetting up experiment for logit difference computation...")
+    num_examples = 100
+    things = get_all_ioi_things(num_examples=num_examples, device=args.device, metric_name="logit_diff")
+    
+    exp = TLACDCExperiment(
+        model=things.tl_model,
+        threshold=100_000,
+        early_exit=False,
+        using_wandb=False,
+        zero_ablation=False,
+        ds=things.test_data,
+        ref_ds=things.test_patch_data,
+        metric=things.validation_metric,
+        second_metric=None,
+        verbose=True,
+        use_pos_embed=False,
+        online_cache_cpu=False,
+        corrupted_cache_cpu=False,
+    )
+    
+    print("\nComputing logit difference relative change...")
+    logit_diff_relative_change = compute_logit_diff_relative_change(
+        corr1, corr2, exp, things, args.device
+    )
+    
+    print(f"Logit Difference Relative Change: {logit_diff_relative_change:.6f}")
 
 
 if __name__ == "__main__":
