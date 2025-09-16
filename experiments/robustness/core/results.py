@@ -4,7 +4,7 @@ from typing import Optional, List, Union
 from datetime import datetime
 
 import sys
-sys.path.append('.')
+
 
 from experiments.robustness.config import ExperimentResult
 

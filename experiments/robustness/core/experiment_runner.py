@@ -2,7 +2,6 @@ from typing import List, Optional, Dict, Any
 from pathlib import Path
 
 import sys
-sys.path.append('.')
 
 from experiments.robustness.config import ExperimentConfig, ExperimentResult
 from experiments.robustness.core import CircuitLoader, MetricComputer, ResultsManager

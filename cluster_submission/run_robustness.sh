@@ -42,7 +42,7 @@ echo "Current Python: $(which python)"
 echo "Environment info:"
 poetry env info
 
-poetry run python experiments/robustness/run_experiments.py \
+poetry run python -m experiments.robustness.run_experiments \
     --experiment all \
     --run-ids ud8s5c37 cl3nhhvp \
     --baseline-id sjr6k1ip \

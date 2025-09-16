@@ -3,7 +3,6 @@ from typing import List, Dict, Any, Tuple
 import statistics
 
 import sys
-sys.path.append('.')
 
 from experiments.robustness.config import ExperimentConfig, CircuitBatch
 from utils.circuit_utils import (

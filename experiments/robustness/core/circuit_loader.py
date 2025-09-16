@@ -6,7 +6,6 @@ import gc
 import torch
 
 import sys
-sys.path.append('.')
 
 from experiments.robustness.config import ExperimentConfig, CircuitBatch
 from utils.circuit_utils import load_single_acdc_run

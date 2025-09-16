@@ -1,12 +1,14 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
+print("Current working directory:", os.getcwd())
+
+import torch
 import argparse
 import sys
 from pathlib import Path
 from typing import List, Optional
-
-sys.path.append('.')
 
 from experiments.robustness.config import ExperimentConfig
 from experiments.robustness.core import RobustnessExperimentRunner
