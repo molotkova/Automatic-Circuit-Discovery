@@ -94,7 +94,6 @@ class ExperimentConfig:
     log_dir: Path = Path("experiments/robustness/results/logs")
     
     # Performance settings
-    batch_size: int = 10
     memory_cleanup: bool = True
     verbose: bool = True
 ```

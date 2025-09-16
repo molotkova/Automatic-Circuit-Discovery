@@ -28,7 +28,6 @@ class ExperimentConfig:
     log_dir: Path = Path("experiments/robustness/results/logs")
     
     # Performance settings
-    batch_size: int = 10
     memory_cleanup: bool = True
     verbose: bool = True
     
@@ -46,8 +45,6 @@ class ExperimentConfig:
         
         if self.num_examples <= 0:
             raise ValueError(f"num_examples must be positive, got {self.num_examples}")
-        if self.batch_size <= 0:
-            raise ValueError(f"batch_size must be positive, got {self.batch_size}")
     
     def to_dict(self) -> Dict[str, Any]:
         config_dict = asdict(self)
