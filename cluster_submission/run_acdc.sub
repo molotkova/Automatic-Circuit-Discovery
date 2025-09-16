@@ -8,7 +8,6 @@ stream_output = True
 stream_error = True
 
 transfer_input_files =  run_acdc.sh
-transfer_output_files =  /home/somo00003/Automatic-Circuit-Discovery/output/output_$(Clusterid)_$(ProcId)
 
 requirements = ((UidDomain == "cs.uni-saarland.de") &&  (GPUs_GlobalMemoryMb >= 16000))
 +WantGPUHomeMounted = true
