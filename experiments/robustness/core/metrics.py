@@ -145,7 +145,7 @@ class MetricComputer:
                 }
         
         if self.config.verbose:
-            print(f"✅ Computed baseline Jaccard indices for {len(baseline_results)} circuits")
+            print(f"Computed baseline Jaccard indices for {len(baseline_results)} circuits")
         
         return baseline_results
     
@@ -176,7 +176,7 @@ class MetricComputer:
                 relative_changes[run_id] = relative_change
         
         if self.config.verbose:
-            print(f"✅ Computed relative changes for {len(relative_changes)} circuits")
+            print(f"Computed relative changes for {len(relative_changes)} circuits")
         
         return relative_changes
     
@@ -248,13 +248,15 @@ class MetricComputer:
                 "nodes": {"mean": 0.0, "std": 0.0, "min": 0.0, "max": 0.0, "count": 0}
             }
         
-        # Collect all edges and nodes values
+        # Collect all edges and nodes values (only upper triangle to avoid duplicates)
         edges_values = []
         nodes_values = []
         
-        for run_id1, pairs in pairwise_results.items():
-            for run_id2, jaccard_data in pairs.items():
-                if run_id1 != run_id2:  # Skip diagonal (self-comparison)
+        run_ids = list(pairwise_results.keys())
+        for i, run_id1 in enumerate(run_ids):
+            for j, run_id2 in enumerate(run_ids):
+                if i < j:  # Only upper triangle (i < j)
+                    jaccard_data = pairwise_results[run_id1][run_id2]
                     edges_values.append(jaccard_data["edges"])
                     nodes_values.append(jaccard_data["nodes"])
         
@@ -297,7 +299,6 @@ class MetricComputer:
         if self.config.verbose:
             print("Computing all metrics...")
         
-        start_time = time.time()
         results = {}
         
         # Compute logit differences
@@ -332,7 +333,6 @@ class MetricComputer:
         
         # Add metadata
         results["metadata"] = {
-            "computation_time": time.time() - start_time,
             "num_circuits": circuit_batch.num_circuits,
             "run_ids": circuit_batch.run_ids,
             "baseline_run_id": baseline_run_id,
@@ -340,6 +340,6 @@ class MetricComputer:
         }
         
         if self.config.verbose:
-            print(f"✅ Computed all metrics in {results['metadata']['computation_time']:.2f} seconds")
+            print(f"Computed all metrics")
         
         return results
