@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import argparse
 import sys
 from pathlib import Path
@@ -8,6 +11,7 @@ sys.path.append('.')
 from experiments.robustness.config import ExperimentConfig
 from experiments.robustness.core import RobustnessExperimentRunner
 
+torch.autograd.set_grad_enabled(False)
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
