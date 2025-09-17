@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 
 import sys
 
-from experiments.robustness.config import ExperimentConfig, ExperimentResult
+from experiments.robustness.config import ExperimentConfig, ExperimentResult, CircuitBatch
 from experiments.robustness.core import CircuitLoader, MetricComputer
 
 
@@ -28,13 +28,14 @@ class BaselineJaccardAnalysis:
         self.loader = CircuitLoader(config)
         self.metrics = MetricComputer(config)
 
-    def run(self, baseline_run_id: str, run_ids: List[str]) -> ExperimentResult:
+    def run(self, baseline_run_id: str, run_ids: List[str], circuit_batch: CircuitBatch = None) -> ExperimentResult:
         """
         Run the baseline Jaccard similarity analysis experiment.
 
         Args:
             baseline_run_id: Run ID of the baseline circuit
             run_ids: List of other W&B run IDs to compare with baseline
+            circuit_batch: Optional pre-loaded circuit batch for caching
 
         Returns:
             ExperimentResult containing baseline Jaccard indices and statistics
@@ -44,9 +45,11 @@ class BaselineJaccardAnalysis:
                 f"Running baseline Jaccard analysis with baseline {baseline_run_id}..."
             )
 
-        # Include baseline in the run_ids for loading
-        all_run_ids = [baseline_run_id] + run_ids
-        circuit_batch = self.loader.load_circuits_batch(all_run_ids)
+        # Load circuits in batch if not provided
+        if circuit_batch is None:
+            # Include baseline in the run_ids for loading
+            all_run_ids = [baseline_run_id] + run_ids
+            circuit_batch = self.loader.load_circuits_batch(all_run_ids)
 
         # Compute baseline Jaccard indices
         baseline_results = self.metrics.compute_baseline_jaccard_indices(

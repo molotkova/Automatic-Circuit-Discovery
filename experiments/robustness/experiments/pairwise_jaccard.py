@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 import sys
 
 
-from experiments.robustness.config import ExperimentConfig, ExperimentResult
+from experiments.robustness.config import ExperimentConfig, ExperimentResult, CircuitBatch
 from experiments.robustness.core import CircuitLoader, MetricComputer
 
 
@@ -28,12 +28,13 @@ class PairwiseJaccardAnalysis:
         self.loader = CircuitLoader(config)
         self.metrics = MetricComputer(config)
 
-    def run(self, run_ids: List[str]) -> ExperimentResult:
+    def run(self, run_ids: List[str], circuit_batch: CircuitBatch = None) -> ExperimentResult:
         """
         Run the pairwise Jaccard similarity analysis experiment.
 
         Args:
             run_ids: List of W&B run IDs to analyze
+            circuit_batch: Optional pre-loaded circuit batch for caching
 
         Returns:
             ExperimentResult containing pairwise Jaccard indices and statistics
@@ -41,8 +42,9 @@ class PairwiseJaccardAnalysis:
         if self.config.verbose:
             print(f"Running pairwise Jaccard analysis for {len(run_ids)} circuits...")
 
-        # Load circuits in batch
-        circuit_batch = self.loader.load_circuits_batch(run_ids)
+        # Load circuits in batch if not provided
+        if circuit_batch is None:
+            circuit_batch = self.loader.load_circuits_batch(run_ids)
 
         # Compute pairwise Jaccard indices
         pairwise_results = self.metrics.compute_pairwise_jaccard_indices(circuit_batch)

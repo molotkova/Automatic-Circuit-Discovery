@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 
 import sys
 
-from experiments.robustness.config import ExperimentConfig, ExperimentResult
+from experiments.robustness.config import ExperimentConfig, ExperimentResult, CircuitBatch
 from experiments.robustness.core import CircuitLoader, MetricComputer
 
 
@@ -27,12 +27,13 @@ class LogitDiffAnalysis:
         self.loader = CircuitLoader(config)
         self.metrics = MetricComputer(config)
 
-    def run(self, run_ids: List[str]) -> ExperimentResult:
+    def run(self, run_ids: List[str], circuit_batch: CircuitBatch = None) -> ExperimentResult:
         """
         Run the logit difference analysis experiment.
 
         Args:
             run_ids: List of W&B run IDs to analyze
+            circuit_batch: Optional pre-loaded circuit batch for caching
 
         Returns:
             ExperimentResult containing individual logit differences and statistics
@@ -40,8 +41,9 @@ class LogitDiffAnalysis:
         if self.config.verbose:
             print(f"Running logit difference analysis for {len(run_ids)} circuits...")
 
-        # Load circuits in batch
-        circuit_batch = self.loader.load_circuits_batch(run_ids)
+        # Load circuits in batch if not provided
+        if circuit_batch is None:
+            circuit_batch = self.loader.load_circuits_batch(run_ids)
 
         # Compute logit differences
         logit_diffs = self.metrics.compute_logit_differences(circuit_batch)

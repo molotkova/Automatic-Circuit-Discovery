@@ -3,7 +3,7 @@ from pathlib import Path
 
 import sys
 
-from experiments.robustness.config import ExperimentConfig, ExperimentResult
+from experiments.robustness.config import ExperimentConfig, ExperimentResult, CircuitBatch
 from experiments.robustness.core import CircuitLoader, MetricComputer, ResultsManager
 from experiments.robustness.experiments import (
     LogitDiffAnalysis,
@@ -40,18 +40,56 @@ class RobustnessExperimentRunner:
         self.baseline_jaccard = BaselineJaccardAnalysis(config)
         self.baseline_logit_diff = BaselineLogitDiffAnalysis(config)
 
+        # Circuit caching for reuse across experiments
+        self._cached_circuit_batch: Optional[CircuitBatch] = None
+
         if self.config.verbose:
             print(f"Initialized RobustnessExperimentRunner with config:")
             print(f"  Project: {self.config.project_name}")
             print(f"  Device: {self.config.device}")
             print(f"  Output dir: {self.config.output_dir}")
 
+    def _load_circuits_once(self, run_ids: List[str]) -> CircuitBatch:
+        """
+        Load circuits once and cache them for reuse across all experiments.
+        
+        Args:
+            run_ids: List of run IDs to load
+            
+        Returns:
+            CircuitBatch object containing the loaded circuits
+        """
+        if self._cached_circuit_batch is None:
+            if self.config.verbose:
+                print(f"Loading circuits for {len(run_ids)} runs...")
+            
+            self._cached_circuit_batch = self.loader.load_circuits_batch(run_ids)
+            
+            if self.config.verbose:
+                print(f"Circuits loaded and cached for reuse across all experiments.")
+        else:
+            if self.config.verbose:
+                print(f"Reusing cached circuits for {len(run_ids)} runs.")
+        
+        return self._cached_circuit_batch
+
+    def clear_circuit_cache(self):
+        """Clear the cached circuit batch to free memory."""
+        self._cached_circuit_batch = None
+        if self.config.verbose:
+            print("Circuit cache cleared.")
+
     def run_logit_difference_analysis(self, run_ids: List[str]) -> ExperimentResult:
         """Run Logit Difference Analysis experiment."""
         if self.config.verbose:
             print(f"Running Logit Difference Analysis...")
 
-        result = self.logit_diff_analysis.run(run_ids)
+        # Load circuits once and reuse
+        circuit_batch = self._load_circuits_once(run_ids)
+        
+        # Use the individual experiment class with cached circuits
+        result = self.logit_diff_analysis.run(run_ids, circuit_batch)
+        
         self.results_manager.save_results(result)
         return result
 
@@ -60,7 +98,12 @@ class RobustnessExperimentRunner:
         if self.config.verbose:
             print(f"Running Pairwise Jaccard Similarity...")
 
-        result = self.pairwise_jaccard.run(run_ids)
+        # Load circuits once and reuse
+        circuit_batch = self._load_circuits_once(run_ids)
+        
+        # Use the individual experiment class with cached circuits
+        result = self.pairwise_jaccard.run(run_ids, circuit_batch)
+        
         self.results_manager.save_results(result)
         return result
 
@@ -71,7 +114,13 @@ class RobustnessExperimentRunner:
         if self.config.verbose:
             print(f"Running Baseline Jaccard Similarity...")
 
-        result = self.baseline_jaccard.run(baseline_run_id, run_ids)
+        # Load circuits for all runs (baseline + run_ids)
+        all_run_ids = [baseline_run_id] + run_ids
+        circuit_batch = self._load_circuits_once(all_run_ids)
+        
+        # Use the individual experiment class with cached circuits
+        result = self.baseline_jaccard.run(baseline_run_id, run_ids, circuit_batch)
+        
         self.results_manager.save_results(result)
         return result
 
@@ -82,7 +131,13 @@ class RobustnessExperimentRunner:
         if self.config.verbose:
             print(f"Running Baseline Logit Difference Robustness...")
 
-        result = self.baseline_logit_diff.run(baseline_run_id, run_ids)
+        # Load circuits for all runs (baseline + run_ids)
+        all_run_ids = [baseline_run_id] + run_ids
+        circuit_batch = self._load_circuits_once(all_run_ids)
+        
+        # Use the individual experiment class with cached circuits
+        result = self.baseline_logit_diff.run(baseline_run_id, run_ids, circuit_batch)
+        
         self.results_manager.save_results(result)
         return result
 
