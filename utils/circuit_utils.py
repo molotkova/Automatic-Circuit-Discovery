@@ -106,65 +106,6 @@ def compute_jaccard_index_nodes(
     return jaccard_index
 
 
-def compute_logit_diff_relative_change(
-    corr1: TLACDCCorrespondence,
-    corr2: TLACDCCorrespondence,
-    exp: TLACDCExperiment,
-    things: Any,
-    device: str = "cuda",
-) -> float:
-    """
-    Compute the relative change in logit difference between two circuit graphs.
-
-    The relative change is defined as:
-    |logit_diff_2 - logit_diff_1| / |logit_diff_1|
-
-    Args:
-        corr1: First correspondence object (baseline circuit)
-        corr2: Second correspondence object (comparison circuit)
-        exp: TLACDCExperiment object with proper setup
-        things: Object containing test_metrics and test_data
-        device: Device to run computations on
-
-    Returns:
-        Relative change in logit difference (float >= 0)
-    """
-
-    # Define the logit difference metric function
-    def get_all_test_metrics(data: torch.Tensor) -> Dict[str, float]:
-        """Get logit difference metric using the test_metrics from things"""
-        return {
-            f"test_{name}": fn(data).item() for name, fn in things.test_metrics.items()
-        }
-
-    # Compute logit difference for first circuit
-    print("Computing logit difference for circuit 1...")
-    exp.setup_corrupted_cache()
-    metrics1 = exp.call_metric_with_corr(corr1, get_all_test_metrics, things.test_data)
-    logit_diff_1 = metrics1["test_logit_diff"]
-
-    # Compute logit difference for second circuit
-    print("Computing logit difference for circuit 2...")
-    exp.setup_corrupted_cache()
-    metrics2 = exp.call_metric_with_corr(corr2, get_all_test_metrics, things.test_data)
-    logit_diff_2 = metrics2["test_logit_diff"]
-
-    # Compute relative change
-    absolute_diff = abs(logit_diff_2 - logit_diff_1)
-    absolute_baseline = abs(logit_diff_1)
-
-    if absolute_baseline == 0:
-        # If baseline is zero, return the absolute difference
-        relative_change = absolute_diff
-        print(
-            f"Warning: Baseline logit difference is 0, returning absolute difference: {absolute_diff}"
-        )
-    else:
-        relative_change = absolute_diff / absolute_baseline
-
-    return relative_change
-
-
 def load_single_acdc_run(
     run_id: str,
     exp: TLACDCExperiment,
