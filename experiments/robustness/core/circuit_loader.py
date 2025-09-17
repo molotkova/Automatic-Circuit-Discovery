@@ -190,18 +190,6 @@ class CircuitLoader:
 
         return batch
 
-    def load_single_circuit(self, run_id: str) -> CircuitBatch:
-        """
-        Load a single circuit (convenience method).
-
-        Args:
-            run_id: W&B run ID to load
-
-        Returns:
-            CircuitBatch containing the single circuit
-        """
-        return self.load_circuits_batch([run_id])
-
     def clear_cache(self) -> None:
         """
         Clear the experiment setup cache to free memory.
