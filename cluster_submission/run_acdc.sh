@@ -55,17 +55,33 @@ poetry env info
 # Get perturbation type and seed from command line arguments
 PERTURBATION=${1:-"shuffle_abc_prompts"}
 SEED=${2:-20}
+
 echo "Using perturbation: $PERTURBATION"
 echo "Using perturbation seed: $SEED"
 
-poetry run python acdc/main.py \
-    --task ioi \
-    --threshold 0.0575 \
-    --using-wandb \
-    --wandb-entity-name personal-14 \
-    --wandb-project-name acdc-robustness \
-    --first-cache-cpu=False \
-    --second-cache-cpu=False \
-    --perturbation "$PERTURBATION" \
-    --perturbation-seed "$SEED" \
-    --max-num-epochs 100000
+# Execute with or without perturbation flags
+if [ "$PERTURBATION" != "None" ]; then
+    # Run with perturbation
+    poetry run python acdc/main.py \
+        --task ioi \
+        --threshold 0.0575 \
+        --using-wandb \
+        --wandb-entity-name personal-14 \
+        --wandb-project-name acdc-robustness \
+        --first-cache-cpu=False \
+        --second-cache-cpu=False \
+        --perturbation "$PERTURBATION" \
+        --perturbation-seed "$SEED" \
+        --max-num-epochs 100000
+else
+    # Run without perturbation
+    poetry run python acdc/main.py \
+        --task ioi \
+        --threshold 0.0575 \
+        --using-wandb \
+        --wandb-entity-name personal-14 \
+        --wandb-project-name acdc-robustness \
+        --first-cache-cpu=False \
+        --second-cache-cpu=False \
+        --max-num-epochs 100000
+fi
