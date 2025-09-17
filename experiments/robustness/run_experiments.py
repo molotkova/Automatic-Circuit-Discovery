@@ -4,8 +4,6 @@ load_dotenv()
 
 import os
 
-print("Current working directory:", os.getcwd())
-
 import torch
 import argparse
 import sys
