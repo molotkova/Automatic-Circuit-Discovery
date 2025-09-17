@@ -38,6 +38,7 @@ docs/build
 .coverage
 cluster_submission/logs_cluster/
 .env
+experiments/robustness/results/
 
 # don't really know what these are..
 .hypothesis/
