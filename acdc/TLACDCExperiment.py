@@ -118,7 +118,6 @@ class TLACDCExperiment:
             skip_edges = "no"
 
         self.corr = TLACDCCorrespondence.setup_from_model(self.model, use_pos_embed=use_pos_embed)
-        print("Correspondence setup")
         if early_exit: 
             return
             
@@ -236,7 +235,7 @@ class TLACDCExperiment:
         cache_keys.reverse()
 
         for hook_name in cache_keys:
-            print(hook_name)            
+            # print(hook_name)            
             if hook_name in self.corr.graph:
                 new_graph[hook_name] = self.corr.graph[hook_name]
 

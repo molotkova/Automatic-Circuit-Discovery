@@ -37,35 +37,14 @@ export PYTHONUNBUFFERED=1
 
 poetry config virtualenvs.in-project true
 
-# Create output directory with job id
-# mkdir -p "./output/output_${CLUSTER_ID}_${PROC_ID}"
-# echo "Created output directory: ./output/output_${CLUSTER_ID}_${PROC_ID}"
-
 # Verify the environment is activated
 echo "Current Python: $(which python)"
 echo "Environment info:"
 poetry env info
 
-# Install dependicies once if not already installed
-# poetry config virtualenvs.in-project true
-# poetry env use $(which python)
-# poetry install
-# poetry show
-
-# Get perturbation type and seed from command line arguments
-PERTURBATION=${1:-"shuffle_abc_prompts"}
-SEED=${2:-20}
-echo "Using perturbation: $PERTURBATION"
-echo "Using perturbation seed: $SEED"
-
-poetry run python acdc/main.py \
-    --task ioi \
-    --threshold 0.0575 \
-    --using-wandb \
-    --wandb-entity-name personal-14 \
-    --wandb-project-name acdc-robustness \
-    --first-cache-cpu=False \
-    --second-cache-cpu=False \
-    --perturbation "$PERTURBATION" \
-    --perturbation-seed "$SEED" \
-    --max-num-epochs 100000
+poetry run python -m experiments.robustness.run_experiments \
+    --experiment all \
+    --run-ids ud8s5c37 cl3nhhvp \
+    --baseline-id sjr6k1ip \
+    --device cuda \
+    --num-examples 100

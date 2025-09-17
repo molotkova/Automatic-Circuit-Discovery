@@ -22,6 +22,65 @@ error  = logs_cluster/$(Clusterid).$(ProcId).err
 log    = logs_cluster/$(Clusterid).$(ProcId).log
 
 environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
-arguments = ""
 
+# Run shuffle_abc_prompts with 10 different random seeds
+# arguments = shuffle_abc_prompts 42
+# queue
+# 
+# arguments = shuffle_abc_prompts 123
+# queue
+# 
+# arguments = shuffle_abc_prompts 456
+# queue
+# 
+# arguments = shuffle_abc_prompts 789
+# queue
+# 
+# arguments = shuffle_abc_prompts 1001
+# queue
+# 
+# arguments = shuffle_abc_prompts 2002
+# queue
+# 
+# arguments = shuffle_abc_prompts 3003
+# queue
+# 
+# arguments = shuffle_abc_prompts 4004
+# queue
+# 
+# arguments = shuffle_abc_prompts 5005
+# queue
+# 
+# arguments = shuffle_abc_prompts 6006
+# queue
+
+# Run add_random_prefixes with 10 different random seeds
+# arguments = add_random_prefixes 42
+# queue
+# 
+# arguments = add_random_prefixes 123
+# queue
+# 
+# arguments = add_random_prefixes 456
+# queue
+
+arguments = add_random_prefixes 789
 queue
+
+# arguments = add_random_prefixes 1001
+# queue
+# 
+# arguments = add_random_prefixes 2002
+# queue
+# 
+# arguments = add_random_prefixes 3003
+# queue
+# 
+# arguments = add_random_prefixes 4004
+# queue
+# 
+# arguments = add_random_prefixes 5005
+# queue
+# 
+# arguments = add_random_prefixes 6006
+# queue
