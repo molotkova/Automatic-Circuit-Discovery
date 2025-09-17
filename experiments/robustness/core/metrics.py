@@ -8,7 +8,6 @@ from experiments.robustness.config import ExperimentConfig, CircuitBatch
 from utils.circuit_utils import (
     compute_jaccard_index_edges,
     compute_jaccard_index_nodes,
-    compute_logit_diff_relative_change,
 )
 
 
@@ -29,6 +28,43 @@ class MetricComputer:
         """
         self.config = config
 
+    def _get_all_test_metrics(self, circuit_batch: CircuitBatch, data: Any) -> Dict[str, float]:
+        """
+        Compute all test metrics for given data.
+        
+        Args:
+            circuit_batch: CircuitBatch containing experiment setup
+            data: Input data to compute metrics on
+            
+        Returns:
+            Dictionary of computed metrics
+        """
+        return {
+            f"test_{name}": fn(data).item() for name, fn in circuit_batch.things.test_metrics.items()
+        }
+
+    def _compute_logit_diff_for_circuit(
+        self, circuit: Any, circuit_batch: CircuitBatch, run_id: str = None
+    ) -> float:
+        """
+        Compute logit difference for a single circuit.
+        
+        Args:
+            circuit: Circuit correspondence object
+            circuit_batch: CircuitBatch containing experiment setup
+            run_id: Optional run ID for logging
+            
+        Returns:
+            Logit difference value
+        """
+        if self.config.verbose and run_id:
+            print(f"  Computing logit diff for {run_id}...")
+
+        metrics = circuit_batch.experiment.call_metric_with_corr(
+            circuit, lambda data: self._get_all_test_metrics(circuit_batch, data), circuit_batch.things.test_data
+        )
+        return metrics["test_logit_diff"]
+
     def compute_logit_differences(
         self, circuit_batch: CircuitBatch
     ) -> Dict[str, float]:
@@ -47,23 +83,13 @@ class MetricComputer:
         # Ensure corrupted cache is set up
         circuit_batch.experiment.setup_corrupted_cache()
 
-        # Define metric function
-        def get_logit_diff_metric(data: Any) -> Dict[str, float]:
-            return {
-                f"test_{name}": fn(data).item()
-                for name, fn in circuit_batch.things.test_metrics.items()
-            }
-
         # Compute for each circuit
         logit_diffs = {}
-        for run_id, circuit in circuit_batch.circuits.items():
-            if self.config.verbose:
-                print(f"  Computing logit diff for {run_id}...")
-
-            metrics = circuit_batch.experiment.call_metric_with_corr(
-                circuit, get_logit_diff_metric, circuit_batch.things.test_data
+        for run_id in circuit_batch.run_ids:
+            circuit = circuit_batch.get_circuit(run_id)
+            logit_diffs[run_id] = self._compute_logit_diff_for_circuit(
+                circuit, circuit_batch, run_id
             )
-            logit_diffs[run_id] = metrics["test_logit_diff"]
 
         if self.config.verbose:
             print(f"Computed logit differences for {len(logit_diffs)} circuits")
@@ -85,16 +111,16 @@ class MetricComputer:
         if self.config.verbose:
             print("Computing pairwise Jaccard indices...")
 
-        run_ids = list(circuit_batch.circuits.keys())
+        run_ids = circuit_batch.run_ids
         pairwise_results = {}
 
         for i, run_id1 in enumerate(run_ids):
             pairwise_results[run_id1] = {}
-            circuit1 = circuit_batch.circuits[run_id1]
+            circuit1 = circuit_batch.get_circuit(run_id1)
 
             for j, run_id2 in enumerate(run_ids):
                 if i <= j:  # Only compute upper triangle + diagonal
-                    circuit2 = circuit_batch.circuits[run_id2]
+                    circuit2 = circuit_batch.get_circuit(run_id2)
 
                     # Compute Jaccard indices
                     jaccard_edges = compute_jaccard_index_edges(circuit1, circuit2)
@@ -135,16 +161,17 @@ class MetricComputer:
         if self.config.verbose:
             print(f"Computing baseline Jaccard indices with {baseline_run_id}...")
 
-        if baseline_run_id not in circuit_batch.circuits:
+        if baseline_run_id not in circuit_batch.run_ids:
             raise ValueError(
                 f"Baseline run ID {baseline_run_id} not found in circuit batch"
             )
 
-        baseline_circuit = circuit_batch.circuits[baseline_run_id]
+        baseline_circuit = circuit_batch.get_circuit(baseline_run_id)
         baseline_results = {}
 
-        for run_id, circuit in circuit_batch.circuits.items():
+        for run_id in circuit_batch.run_ids:
             if run_id != baseline_run_id:
+                circuit = circuit_batch.get_circuit(run_id)
                 # Compute Jaccard indices
                 jaccard_edges = compute_jaccard_index_edges(baseline_circuit, circuit)
                 jaccard_nodes = compute_jaccard_index_nodes(baseline_circuit, circuit)
@@ -167,6 +194,9 @@ class MetricComputer:
         """
         Compute relative change in logit difference between baseline and other circuits.
 
+        The relative change is defined as:
+        |logit_diff_2 - logit_diff_1| / |logit_diff_1|
+
         Args:
             baseline_run_id: Run ID of the baseline circuit
             circuit_batch: CircuitBatch containing circuits
@@ -179,20 +209,44 @@ class MetricComputer:
                 f"Computing baseline logit diff relative changes with {baseline_run_id}..."
             )
 
-        if baseline_run_id not in circuit_batch.circuits:
+        if baseline_run_id not in circuit_batch.run_ids:
             raise ValueError(
                 f"Baseline run ID {baseline_run_id} not found in circuit batch"
             )
 
-        baseline_circuit = circuit_batch.circuits[baseline_run_id]
-        relative_changes = {}
+        # Ensure corrupted cache is set up
+        circuit_batch.experiment.setup_corrupted_cache()
 
-        for run_id, circuit in circuit_batch.circuits.items():
+        # Compute baseline logit difference
+        baseline_circuit = circuit_batch.get_circuit(baseline_run_id)
+        baseline_logit_diff = self._compute_logit_diff_for_circuit(
+            baseline_circuit, circuit_batch, baseline_run_id
+        )
+
+        # Compute relative changes for all other circuits
+        relative_changes = {}
+        for run_id in circuit_batch.run_ids:
             if run_id != baseline_run_id:
-                # Compute relative change
-                relative_change = compute_logit_diff_relative_change(
-                    baseline_circuit, circuit
+                # Compute logit difference for this circuit
+                circuit = circuit_batch.get_circuit(run_id)
+                circuit_logit_diff = self._compute_logit_diff_for_circuit(
+                    circuit, circuit_batch, run_id
                 )
+
+                # Compute relative change
+                absolute_diff = abs(circuit_logit_diff - baseline_logit_diff)
+                absolute_baseline = abs(baseline_logit_diff)
+
+                if absolute_baseline == 0:
+                    # If baseline is zero, return the absolute difference
+                    relative_change = absolute_diff
+                    if self.config.verbose:
+                        print(
+                            f"Warning: Baseline logit difference is 0, returning absolute difference: {absolute_diff}"
+                        )
+                else:
+                    relative_change = absolute_diff / absolute_baseline
+
                 relative_changes[run_id] = relative_change
 
         if self.config.verbose:
