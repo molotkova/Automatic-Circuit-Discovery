@@ -52,10 +52,11 @@ class BaselineLogitDiffAnalysis:
                 f"Running baseline logit diff robustness analysis with baseline {baseline_run_id}..."
             )
 
+        # Include baseline in the run_ids for result metadata
+        all_run_ids = [baseline_run_id] + run_ids
+        
         # Load circuits in batch if not provided
         if circuit_batch is None:
-            # Include baseline in the run_ids for loading
-            all_run_ids = [baseline_run_id] + run_ids
             circuit_batch = self.loader.load_circuits_batch(all_run_ids)
 
         # Compute baseline logit difference relative changes

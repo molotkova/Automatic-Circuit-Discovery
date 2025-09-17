@@ -157,6 +157,16 @@ class RobustnessExperimentRunner:
         if self.config.verbose:
             print(f"Running all experiments with {len(run_ids)} runs...")
 
+        # Load all circuits once (including baseline if provided)
+        all_run_ids = run_ids.copy()
+        if baseline_run_id:
+            all_run_ids = [baseline_run_id] + run_ids
+        
+        if self.config.verbose:
+            print(f"Loading circuits for {len(all_run_ids)} runs (including baseline)...")
+        
+        circuit_batch = self._load_circuits_once(all_run_ids)
+
         results = []
 
         # Run experiments 1 & 2 (no baseline needed)
