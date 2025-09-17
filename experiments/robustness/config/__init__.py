@@ -6,6 +6,6 @@ from .experiment_config import (
 
 __all__ = [
     "ExperimentConfig",
-    "CircuitBatch", 
+    "CircuitBatch",
     "ExperimentResult",
 ]

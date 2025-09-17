@@ -5,7 +5,7 @@ from .baseline_logit_diff import BaselineLogitDiffAnalysis
 
 __all__ = [
     "LogitDiffAnalysis",
-    "PairwiseJaccardAnalysis", 
+    "PairwiseJaccardAnalysis",
     "BaselineJaccardAnalysis",
     "BaselineLogitDiffAnalysis",
 ]

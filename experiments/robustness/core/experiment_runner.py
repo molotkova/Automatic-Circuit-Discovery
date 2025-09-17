@@ -9,23 +9,23 @@ from experiments.robustness.experiments import (
     LogitDiffAnalysis,
     PairwiseJaccardAnalysis,
     BaselineJaccardAnalysis,
-    BaselineLogitDiffAnalysis
+    BaselineLogitDiffAnalysis,
 )
 
 
 class RobustnessExperimentRunner:
     """
     Main orchestrator for all robustness experiments.
-    
+
     This class provides a unified interface for running individual experiments
     or all experiments in sequence. It manages the lifecycle of experiments,
     handles resource allocation, and coordinates result collection.
     """
-    
+
     def __init__(self, config: ExperimentConfig):
         """
         Initialize the robustness experiment runner.
-        
+
         Args:
             config: Experiment configuration
         """
@@ -33,82 +33,91 @@ class RobustnessExperimentRunner:
         self.loader = CircuitLoader(config)
         self.metrics = MetricComputer(config)
         self.results_manager = ResultsManager(config.output_dir)
-        
+
         # Initialize experiment classes
         self.logit_diff_analysis = LogitDiffAnalysis(config)
         self.pairwise_jaccard = PairwiseJaccardAnalysis(config)
         self.baseline_jaccard = BaselineJaccardAnalysis(config)
         self.baseline_logit_diff = BaselineLogitDiffAnalysis(config)
-        
+
         if self.config.verbose:
             print(f"Initialized RobustnessExperimentRunner with config:")
             print(f"  Project: {self.config.project_name}")
             print(f"  Device: {self.config.device}")
             print(f"  Output dir: {self.config.output_dir}")
-    
+
     def run_logit_difference_analysis(self, run_ids: List[str]) -> ExperimentResult:
         """Run Logit Difference Analysis experiment."""
         if self.config.verbose:
             print(f"Running Logit Difference Analysis...")
-        
+
         result = self.logit_diff_analysis.run(run_ids)
         self.results_manager.save_results(result)
         return result
-    
+
     def run_pairwise_jaccard_similarity(self, run_ids: List[str]) -> ExperimentResult:
         """Run Pairwise Jaccard Similarity experiment."""
         if self.config.verbose:
             print(f"Running Pairwise Jaccard Similarity...")
-        
+
         result = self.pairwise_jaccard.run(run_ids)
         self.results_manager.save_results(result)
         return result
-    
-    def run_baseline_jaccard_similarity(self, baseline_run_id: str, run_ids: List[str]) -> ExperimentResult:
+
+    def run_baseline_jaccard_similarity(
+        self, baseline_run_id: str, run_ids: List[str]
+    ) -> ExperimentResult:
         """Run Baseline Jaccard Similarity experiment."""
         if self.config.verbose:
             print(f"Running Baseline Jaccard Similarity...")
-        
+
         result = self.baseline_jaccard.run(baseline_run_id, run_ids)
         self.results_manager.save_results(result)
         return result
-    
-    def run_baseline_logit_diff_robustness(self, baseline_run_id: str, run_ids: List[str]) -> ExperimentResult:
+
+    def run_baseline_logit_diff_robustness(
+        self, baseline_run_id: str, run_ids: List[str]
+    ) -> ExperimentResult:
         """Run Baseline Logit Difference Robustness experiment."""
         if self.config.verbose:
             print(f"Running Baseline Logit Difference Robustness...")
-        
+
         result = self.baseline_logit_diff.run(baseline_run_id, run_ids)
         self.results_manager.save_results(result)
         return result
-    
-    def run_all_experiments(self, run_ids: List[str], baseline_run_id: Optional[str] = None) -> List[ExperimentResult]:
+
+    def run_all_experiments(
+        self, run_ids: List[str], baseline_run_id: Optional[str] = None
+    ) -> List[ExperimentResult]:
         """
         Run all robustness experiments in sequence.
-        
+
         Args:
             run_ids: List of W&B run IDs to analyze
             baseline_run_id: Optional baseline run ID for experiments 3 & 4
-            
+
         Returns:
             List of ExperimentResult objects from all experiments
         """
         if self.config.verbose:
             print(f"Running all experiments with {len(run_ids)} runs...")
-        
+
         results = []
-        
+
         # Run experiments 1 & 2 (no baseline needed)
         results.append(self.run_logit_difference_analysis(run_ids))
         results.append(self.run_pairwise_jaccard_similarity(run_ids))
-        
+
         # Run experiments 3 & 4 (require baseline)
         if baseline_run_id:
-            results.append(self.run_baseline_jaccard_similarity(baseline_run_id, run_ids))
-            results.append(self.run_baseline_logit_diff_robustness(baseline_run_id, run_ids))
-        
+            results.append(
+                self.run_baseline_jaccard_similarity(baseline_run_id, run_ids)
+            )
+            results.append(
+                self.run_baseline_logit_diff_robustness(baseline_run_id, run_ids)
+            )
+
         if self.config.verbose:
             print(f"Completed {len(results)} experiments")
-        
+
         return results
-    
