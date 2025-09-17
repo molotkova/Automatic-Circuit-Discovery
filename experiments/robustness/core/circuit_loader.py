@@ -124,7 +124,7 @@ class CircuitLoader:
         """
         # Get basic circuit information
         num_edges = correspondence.count_no_edges()
-        num_nodes = len(correspondence.nodes)
+        num_nodes = len(correspondence.nodes())
 
         metadata = {
             "run_id": run_id,
