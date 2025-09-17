@@ -53,7 +53,7 @@ poetry env info
 # poetry show
 
 # Get perturbation type and seed from command line arguments
-PERTURBATION=${1:-"shuffle_abc_prompts"}
+PERTURBATION=${1:-"None"}
 SEED=${2:-20}
 
 echo "Using perturbation: $PERTURBATION"
