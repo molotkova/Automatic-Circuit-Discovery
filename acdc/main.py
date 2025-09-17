@@ -177,6 +177,8 @@ parser.add_argument('--perturbation', type=str, required=False, default=None,
                    help='Dataset perturbation to apply (e.g., shuffle_abc_prompts)')
 parser.add_argument('--perturbation-seed', type=int, required=False, default=42,
                    help='Seed for perturbation randomization')
+parser.add_argument('--num-examples', type=int, required=False, default=None,
+                   help='Number of examples to use for the task (uses task-specific defaults if not provided)')
 
 if ipython is not None:
     # We are in a notebook
@@ -234,6 +236,9 @@ SINGLE_STEP = True if args.single_step else False
 PERTURBATION = args.perturbation
 PERTURBATION_SEED = args.perturbation_seed
 
+# Process num_examples argument
+NUM_EXAMPLES = args.num_examples
+
 #%% [markdown] 
 # <h2>Setup Task</h2>
 
@@ -244,7 +249,7 @@ use_pos_embed = TASK.startswith("tracr")
 
 print("Setting up task...")
 if TASK == "ioi":
-    num_examples = 100
+    num_examples = NUM_EXAMPLES if NUM_EXAMPLES is not None else 100
     things = get_all_ioi_things(
         num_examples=num_examples, 
         device=DEVICE, 
@@ -256,7 +261,7 @@ if TASK == "ioi":
     )
     print("Dataset and model ready")
 elif TASK == "or_gate":
-    num_examples = 1
+    num_examples = NUM_EXAMPLES if NUM_EXAMPLES is not None else 1
     seq_len = 1
 
     things = get_all_logic_gate_things(
@@ -266,7 +271,7 @@ elif TASK == "or_gate":
         device=DEVICE,
     )
 elif TASK == "tracr-reverse":
-    num_examples = 6
+    num_examples = NUM_EXAMPLES if NUM_EXAMPLES is not None else 6
     things = get_all_tracr_things(
         task="reverse",
         metric_name=args.metric,
@@ -274,7 +279,7 @@ elif TASK == "tracr-reverse":
         device=DEVICE,
     )
 elif TASK == "tracr-proportion":
-    num_examples = 50
+    num_examples = NUM_EXAMPLES if NUM_EXAMPLES is not None else 50
     things = get_all_tracr_things(
         task="proportion",
         metric_name=args.metric,
@@ -282,13 +287,16 @@ elif TASK == "tracr-proportion":
         device=DEVICE,
     )
 elif TASK == "induction":
-    num_examples = 10 if IN_COLAB else 50
+    if NUM_EXAMPLES is not None:
+        num_examples = NUM_EXAMPLES
+    else:
+        num_examples = 10 if IN_COLAB else 50
     seq_len = 300
     things = get_all_induction_things(
         num_examples=num_examples, seq_len=seq_len, device=DEVICE, metric=args.metric
     )
 elif TASK == "docstring":
-    num_examples = 50
+    num_examples = NUM_EXAMPLES if NUM_EXAMPLES is not None else 50
     seq_len = 41
     things = get_all_docstring_things(
         num_examples=num_examples,
@@ -298,7 +306,7 @@ elif TASK == "docstring":
         correct_incorrect_wandb=True,
     )
 elif TASK == "greaterthan":
-    num_examples = 100
+    num_examples = NUM_EXAMPLES if NUM_EXAMPLES is not None else 100
     things = get_all_greaterthan_things(
         num_examples=num_examples, metric_name=args.metric, device=DEVICE
     )
