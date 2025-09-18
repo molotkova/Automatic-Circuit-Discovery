@@ -42,7 +42,8 @@ def get_all_ioi_things(
     metric_name, 
     kl_return_one_element=True,
     perturbation_name: str = None,
-    perturbation_kwargs: dict = None
+    perturbation_kwargs: dict = None,
+    seed: int = 0
 ):
     tl_model = get_gpt2_small(device=device)
     
@@ -51,17 +52,17 @@ def get_all_ioi_things(
         prompt_type="ABBA",
         N=num_examples*2,
         nb_templates=1,
-        seed=0,
+        seed=seed
     )
 
     abc_dataset = (
-        ioi_dataset.gen_flipped_prompts(("IO", "RAND"), seed=1)
-        .gen_flipped_prompts(("S", "RAND"), seed=2)
-        .gen_flipped_prompts(("S1", "RAND"), seed=3)
+        ioi_dataset.gen_flipped_prompts(("IO", "RAND"), seed=seed+1)
+        .gen_flipped_prompts(("S", "RAND"), seed=seed+2)
+        .gen_flipped_prompts(("S1", "RAND"), seed=seed+3)
     )
     
     # Print texts before perturbation
-    """
+
     print(f"\n=== TEXTS BEFORE PERTURBATION ===")
     print(f"IOI Dataset texts (first 5):")
     for i in range(5):
@@ -74,7 +75,7 @@ def get_all_ioi_things(
         text = abc_dataset.ioi_prompts[i]['text']
         print(f"  {i}: '{text}'")
         print(f"    Length: {len(text)} chars")
-    """
+
 
     # Apply perturbation if specified
     if perturbation_name is not None:
@@ -84,7 +85,6 @@ def get_all_ioi_things(
         ioi_dataset, abc_dataset = perturbation.apply(ioi_dataset, abc_dataset, **kwargs)
         
         # Print texts after perturbation
-        """
         print(f"\n=== TEXTS AFTER PERTURBATION ===")
         print(f"IOI Dataset texts (first 5):")
         for i in range(5):
@@ -97,7 +97,7 @@ def get_all_ioi_things(
             text = abc_dataset.ioi_prompts[i]['text']
             print(f"  {i}: '{text}'")
             print(f"    Length: {len(text)} chars")
-        """
+            
     seq_len = ioi_dataset.toks.shape[1]
     if seq_len != 16:
         import warnings

@@ -179,6 +179,8 @@ parser.add_argument('--perturbation-seed', type=int, required=False, default=42,
                    help='Seed for perturbation randomization')
 parser.add_argument('--num-examples', type=int, required=False, default=None,
                    help='Number of examples to use for the task (uses task-specific defaults if not provided)')
+parser.add_argument('--dataset-seed', type=int, required=False, default=0,
+                   help='Seed for dataset generation (uses default seed if not provided)')
 
 if ipython is not None:
     # We are in a notebook
@@ -239,6 +241,9 @@ PERTURBATION_SEED = args.perturbation_seed
 # Process num_examples argument
 NUM_EXAMPLES = args.num_examples
 
+# Process dataset_seed argument
+DATASET_SEED = args.dataset_seed
+
 #%% [markdown] 
 # <h2>Setup Task</h2>
 
@@ -254,6 +259,7 @@ if TASK == "ioi":
         num_examples=num_examples, 
         device=DEVICE, 
         metric_name=args.metric,
+        seed=DATASET_SEED,
         perturbation_name=PERTURBATION,
         perturbation_kwargs={
             "seed": PERTURBATION_SEED
