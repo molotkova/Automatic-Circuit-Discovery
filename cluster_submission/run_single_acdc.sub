@@ -23,5 +23,5 @@ log    = logs_cluster/$(Clusterid).$(ProcId).log
 
 environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
 
-arguments = None 42
+arguments = swap_dataset_roles 42 2
 queue

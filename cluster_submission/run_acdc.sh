@@ -52,12 +52,14 @@ poetry env info
 # poetry install
 # poetry show
 
-# Get perturbation type and seed from command line arguments
+# Get perturbation type, perturbation seed, and dataset seed from command line arguments
 PERTURBATION=${1:-"None"}
-SEED=${2:-20}
+PERTURBATION_SEED=${2:-20}
+DATASET_SEED=${3:-0}
 
 echo "Using perturbation: $PERTURBATION"
-echo "Using perturbation seed: $SEED"
+echo "Using perturbation seed: $PERTURBATION_SEED"
+echo "Using dataset seed: $DATASET_SEED"
 
 # Execute with or without perturbation flags
 if [ "$PERTURBATION" != "None" ]; then
@@ -71,8 +73,9 @@ if [ "$PERTURBATION" != "None" ]; then
         --first-cache-cpu=False \
         --second-cache-cpu=False \
         --perturbation "$PERTURBATION" \
-        --perturbation-seed "$SEED" \
-        --max-num-epochs 100000
+        --perturbation-seed "$PERTURBATION_SEED" \
+        --max-num-epochs 100000  \
+        --dataset-seed "$DATASET_SEED"
 else
     # Run without perturbation
     poetry run python acdc/main.py \
@@ -83,5 +86,6 @@ else
         --wandb-project-name acdc-robustness \
         --first-cache-cpu=False \
         --second-cache-cpu=False \
-        --max-num-epochs 100000
+        --max-num-epochs 100000 \
+        --dataset-seed "$DATASET_SEED"
 fi

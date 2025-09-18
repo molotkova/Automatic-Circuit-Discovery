@@ -23,7 +23,7 @@ log    = logs_cluster/$(Clusterid).$(ProcId).log
 
 environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
 
-# Run shuffle_abc_prompts with 10 different random seeds
+# Run shuffle_abc_prompts with 10 different perturbation seeds
 # arguments = shuffle_abc_prompts 42
 # queue
 # 
@@ -54,7 +54,7 @@ environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
 # arguments = shuffle_abc_prompts 6006
 # queue
 
-# Run add_random_prefixes with 10 different random seeds
+# Run add_random_prefixes with 10 different perturbation seeds
 # arguments = add_random_prefixes 42
 # queue
 # 
@@ -63,10 +63,10 @@ environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
 # 
 # arguments = add_random_prefixes 456
 # queue
-
-arguments = add_random_prefixes 789
-queue
-
+#
+#arguments = add_random_prefixes 789 0
+#queue
+#
 # arguments = add_random_prefixes 1001
 # queue
 # 
@@ -84,3 +84,35 @@ queue
 # 
 # arguments = add_random_prefixes 6006
 # queue
+
+# Run swap_dataset_roles with 10 different random dataset seeds
+
+arguments = swap_dataset_roles 42 0
+queue
+
+arguments = swap_dataset_roles 42 1
+queue
+
+arguments = swap_dataset_roles 42 2
+queue
+
+arguments = swap_dataset_roles 42 3
+queue
+
+arguments = swap_dataset_roles 42 4
+queue
+
+arguments = swap_dataset_roles 42 5
+queue
+
+arguments = swap_dataset_roles 42 6
+queue
+
+arguments = swap_dataset_roles 42 7
+queue
+
+arguments = swap_dataset_roles 42 8
+queue
+
+arguments = swap_dataset_roles 42 9
+queue
