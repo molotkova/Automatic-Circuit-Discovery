@@ -1,4 +1,7 @@
 #!/bin/bash
+
+PERTURBATION_TYPE="$1"
+
 # Unset PYTHONPATH to avoid any local Python settings
 unset PYTHONPATH
 # Unset any conda-related environment variables to start fresh
@@ -42,9 +45,32 @@ echo "Current Python: $(which python)"
 echo "Environment info:"
 poetry env info
 
-poetry run python -m experiments.robustness.run_experiments \
-    --experiment all \
-    --run-ids ud8s5c37 cl3nhhvp \
-    --baseline-id sjr6k1ip \
-    --device cuda \
-    --num-examples 100
+case "$PERTURBATION_TYPE" in
+    "swap_dataset_roles")
+        poetry run python -m experiments.robustness.run_experiments \
+            --experiment all \
+            --perturbation "$PERTURBATION_TYPE" \
+            --run-ids oej7igco q1aj4v7a 0gfdvfex 3j7xmd4m m7ocizzd mva8de2j no4ot2lk rg4s225f bpryslek mzuyijib \
+            --baseline-id sjr6k1ip \
+            --device cuda \
+            --num-examples 100
+        ;;
+    "add_random_prefixes")
+        poetry run python -m experiments.robustness.run_experiments \
+            --experiment all \
+            --perturbation "$PERTURBATION_TYPE" \
+            --run-ids 4x4nnkmc 84n391j5 er9ukc3m 1jk51d9n fkla2wkv k2uu5tlh pzlq8fv0 vedrvood xk8u910v e1scwu2z \
+            --baseline-id sjr6k1ip \
+            --device cuda \
+            --num-examples 100
+        ;;
+    "shuffle_abc_prompts")
+        poetry run python -m experiments.robustness.run_experiments \
+            --experiment all \
+            --perturbation "$PERTURBATION_TYPE" \
+            --run-ids 2cmlgn4z 9woq5yej pozq1kcl uuywclwi 1cjeqiq7 285k2zbj gp4litlj m278sb60 m71uvccm xm64deab \
+            --baseline-id sjr6k1ip \
+            --device cuda \
+            --num-examples 100
+        ;;
+esac
