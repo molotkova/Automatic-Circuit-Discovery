@@ -87,6 +87,14 @@ Examples:
     )
 
     parser.add_argument(
+        "--perturbation",
+        type=str,
+        choices=["shuffle_abc_prompts", "add_random_prefixes", "swap_dataset_roles", "None"],
+        default="None",
+        help="Perturbation type to use (or None for no perturbation)",
+    )
+
+    parser.add_argument(
         "--output-dir",
         type=str,
         default="experiments/robustness/results",
@@ -108,11 +116,15 @@ Examples:
 
 def create_config(args: argparse.Namespace) -> ExperimentConfig:
     """Create experiment configuration from command line arguments."""
+    # Convert "None" string to None for perturbation
+    perturbation = None if args.perturbation == "None" else args.perturbation
+    
     return ExperimentConfig(
         project_name=args.project_name,
         device=args.device,
         num_examples=args.num_examples,
         metric_name=args.metric_name,
+        perturbation=perturbation,
         output_dir=Path(args.output_dir),
         verbose=args.verbose and not args.quiet,
     )
@@ -167,6 +179,7 @@ def main():
             print(f"Baseline: {args.baseline_id}")
         print(f"Project: {config.project_name}")
         print(f"Device: {config.device}")
+        print(f"Perturbation: {config.perturbation or 'None'}")
         print(f"Output: {config.output_dir}")
         print("=" * 80)
 
