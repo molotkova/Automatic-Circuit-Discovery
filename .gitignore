@@ -38,7 +38,9 @@ docs/build
 .coverage
 cluster_submission/logs_cluster/
 .env
-experiments/robustness/results/
+experiments/robustness/results/*
+!experiments/robustness/results/analysis/
+!experiments/robustness/results/analysis/**
 
 # don't really know what these are..
 .hypothesis/
