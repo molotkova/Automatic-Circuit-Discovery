@@ -24,34 +24,34 @@ log    = logs_cluster/$(Clusterid).$(ProcId).log
 environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
 
 # Run baseline with 10 different random dataset seeds
-arguments = None 10
+arguments = None 42 10
 queue
 
-arguments = None 11
+arguments = None 42 11
 queue
 
-arguments = None 12
+arguments = None 42 12
 queue
 
-arguments = None 13
+arguments = None 42 13
 queue
 
-arguments = None 14
+arguments = None 42 14
 queue
 
-arguments = None 15
+arguments = None 42 15
 queue
 
-arguments = None 16
+arguments = None 42 16
 queue
 
-arguments = None 17
+arguments = None 42 17
 queue
 
-arguments = None 18
+arguments = None 42 18
 queue
 
-arguments = None 19
+arguments = None 42 19
 queue
 
 # Run shuffle_abc_prompts with 10 different perturbation seeds
