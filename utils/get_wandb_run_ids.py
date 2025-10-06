@@ -103,11 +103,13 @@ def parse_filter(filter_str):
     """
     Parses a filter string of the form key1=value1,key2=value2 into a dict.
     Supports comma-separated values for a single key: key1=value1,value2,value3
+    Supports null filtering with 'none' or 'None' values
     
     Examples:
     - 'config.perturbation=swap_dataset_roles,config.dataset_seed=2'
     - 'config.dataset_seed=2,3,4,5'
     - 'config.perturbation=shuffle_abc_prompts,add_random_prefixes'
+    - 'config.perturbation=None'  # Filter for no perturbation
     """
     if not filter_str:
         return None
@@ -155,11 +157,13 @@ def parse_filter(filter_str):
     return filter_dict
 
 def _parse_value(val):
-    """Helper function to parse a single value as int, float, bool, or string."""
+    """Helper function to parse a single value as int, float, bool, string, or null."""
     if val.lower() == "true":
         return True
     elif val.lower() == "false":
         return False
+    elif val in ["none", "None"]:
+        return None
     else:
         try:
             return int(val)
@@ -173,7 +177,7 @@ def main():
     parser = argparse.ArgumentParser(description="Get W&B run IDs according to filter. Defaults to personal-14/acdc-robustness project.")
     parser.add_argument("--entity", default="personal-14", help="WandB entity (user or team) [default: personal-14]")
     parser.add_argument("--project", default="acdc-robustness", help="WandB project name [default: acdc-robustness]")
-    parser.add_argument("--filter", default=None, help="Filter string, e.g. 'config.perturbation=swap_dataset_roles,config.dataset_seed=2,3,4'")
+    parser.add_argument("--filter", default=None, help="Filter string, e.g. 'config.perturbation=swap_dataset_roles,config.dataset_seed=2,3,4' or 'config.perturbation=none'")
     parser.add_argument("--max-runs", type=int, default=None, help="Maximum number of runs to fetch")
     parser.add_argument("--start-date", default=None, help="Start date for filtering runs (YYYY-MM-DD or ISO format)")
     parser.add_argument("--end-date", default=None, help="End date for filtering runs (YYYY-MM-DD or ISO format)")
