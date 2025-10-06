@@ -73,4 +73,13 @@ case "$PERTURBATION_TYPE" in
             --device cuda \
             --num-examples 100
         ;;
+    "None")
+        poetry run python -m experiments.robustness.run_experiments \
+            --experiment all \
+            --perturbation "$PERTURBATION_TYPE" \
+            --run-ids 1svqlnvq qtfooeu2 ygset3ov lpg2689f 58124ne6 e9nkdz00 kaps5yaz xrqg2tn3 gi3imwjo suk84c6h \
+            --baseline-id sjr6k1ip \
+            --device cuda \
+            --num-examples 100
+        ;;
 esac
