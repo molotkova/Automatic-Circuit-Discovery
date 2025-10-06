@@ -7,7 +7,7 @@ when_to_transfer_output = ON_EXIT_OR_EVICT
 stream_output = True
 stream_error = True
 
-transfer_input_files =  run_acdc.sh
+transfer_input_files =  run_robustness.sh
 
 requirements = ((UidDomain == "cs.uni-saarland.de") &&  (GPUs_GlobalMemoryMb >= 16000))
 +WantGPUHomeMounted = true
