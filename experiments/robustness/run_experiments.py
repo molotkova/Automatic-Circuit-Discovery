@@ -23,14 +23,23 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run all experiments
-  python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-id run1
+  # Run all experiments with single baseline
+  python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-ids run1
 
-  # Run specific experiment
+  # Run all experiments with multiple baselines
+  python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-ids baseline1 baseline2 baseline3
+
+  # Run baseline experiment with single baseline
+  python run_experiments.py --experiment baseline-jaccard --run-ids run1 run2 run3 --baseline-ids run1
+
+  # Run baseline experiment with multiple baselines
+  python run_experiments.py --experiment baseline-jaccard --run-ids run1 run2 run3 --baseline-ids baseline1 baseline2 baseline3
+
+  # Run specific experiment (no baseline needed)
   python run_experiments.py --experiment logit-diff --run-ids run1 run2 run3
 
   # Run with custom configuration
-  python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-id run1 --device cpu --num-examples 50
+  python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-ids run1 --device cpu --num-examples 50
 
   # Run with custom output directory
   python run_experiments.py --experiment pairwise-jaccard --run-ids run1 run2 --output-dir ./my_results
@@ -57,9 +66,10 @@ Examples:
 
     # Optional arguments
     parser.add_argument(
-        "--baseline-id",
+        "--baseline-ids",
+        nargs="+",
         type=str,
-        help="Baseline run ID (required for baseline experiments)",
+        help="Baseline run ID(s) - can be single ID or multiple IDs (required for baseline experiments)",
     )
 
     # Configuration arguments
@@ -135,15 +145,15 @@ def validate_arguments(args: argparse.Namespace) -> None:
     # Check if baseline is required
     if (
         args.experiment in ["baseline-jaccard", "baseline-logit-diff"]
-        and not args.baseline_id
+        and not args.baseline_ids
     ):
-        print(f"Error: Experiment '{args.experiment}' requires --baseline-id")
+        print(f"Error: Experiment '{args.experiment}' requires --baseline-ids")
         sys.exit(1)
 
     # Check if baseline is provided when not needed
-    if args.experiment in ["logit-diff", "pairwise-jaccard"] and args.baseline_id:
+    if args.experiment in ["logit-diff", "pairwise-jaccard"] and args.baseline_ids:
         print(
-            f"Warning: Experiment '{args.experiment}' does not use baseline, ignoring --baseline-id"
+            f"Warning: Experiment '{args.experiment}' does not use baseline, ignoring --baseline-ids"
         )
 
     # Validate run IDs
@@ -175,8 +185,11 @@ def main():
         print("=" * 80)
         print(f"Experiment: {args.experiment}")
         print(f"Run IDs: {', '.join(args.run_ids)}")
-        if args.baseline_id:
-            print(f"Baseline: {args.baseline_id}")
+        if args.baseline_ids:
+            if len(args.baseline_ids) == 1:
+                print(f"Baseline: {args.baseline_ids[0]}")
+            else:
+                print(f"Baselines: {', '.join(args.baseline_ids)}")
         print(f"Project: {config.project_name}")
         print(f"Device: {config.device}")
         print(f"Perturbation: {config.perturbation or 'None'}")
@@ -188,15 +201,16 @@ def main():
 
     # Run experiments
     if args.experiment == "all":
-        runner.run_all_experiments(args.run_ids, args.baseline_id)
+        # For 'all' experiments, use all baseline IDs if provided
+        runner.run_all_experiments(args.run_ids, args.baseline_ids)
     elif args.experiment == "logit-diff":
         runner.run_logit_difference_analysis(args.run_ids)
     elif args.experiment == "pairwise-jaccard":
         runner.run_pairwise_jaccard_similarity(args.run_ids)
     elif args.experiment == "baseline-jaccard":
-        runner.run_baseline_jaccard_similarity(args.baseline_id, args.run_ids)
+        runner.run_baseline_jaccard_similarity(args.baseline_ids, args.run_ids)
     elif args.experiment == "baseline-logit-diff":
-        runner.run_baseline_logit_diff_robustness(args.baseline_id, args.run_ids)
+        runner.run_baseline_logit_diff_robustness(args.baseline_ids, args.run_ids)
 
     print(f"\nExperiments completed successfully!")
     print(f"Results saved to: {config.output_dir}")

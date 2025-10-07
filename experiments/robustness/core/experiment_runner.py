@@ -149,54 +149,54 @@ class RobustnessExperimentRunner:
         return result
 
     def run_baseline_jaccard_similarity(
-        self, baseline_run_id: str, run_ids: List[str]
+        self, baseline_run_ids: List[str], run_ids: List[str]
     ) -> ExperimentResult:
         """Run Baseline Jaccard Similarity experiment."""
         if self.config.verbose:
             print(f"Running Baseline Jaccard Similarity...")
 
-        # Load circuits for all runs (baseline + run_ids)
-        all_run_ids = [baseline_run_id] + run_ids
+        # Load circuits for all runs (baselines + run_ids)
+        all_run_ids = baseline_run_ids + run_ids
         circuit_batch = self._load_circuits_once(all_run_ids)
         
-        # Filter to only include circuits for the requested run_ids (including baseline)
+        # Filter to only include circuits for the requested run_ids (including baselines)
         filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
         
         # Use the individual experiment class with filtered circuits
-        result = self.baseline_jaccard.run(baseline_run_id, run_ids, filtered_circuit_batch)
+        result = self.baseline_jaccard.run(baseline_run_ids, run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
 
     def run_baseline_logit_diff_robustness(
-        self, baseline_run_id: str, run_ids: List[str]
+        self, baseline_run_ids: List[str], run_ids: List[str]
     ) -> ExperimentResult:
         """Run Baseline Logit Difference Robustness experiment."""
         if self.config.verbose:
             print(f"Running Baseline Logit Difference Robustness...")
 
-        # Load circuits for all runs (baseline + run_ids)
-        all_run_ids = [baseline_run_id] + run_ids
+        # Load circuits for all runs (baselines + run_ids)
+        all_run_ids = baseline_run_ids + run_ids
         circuit_batch = self._load_circuits_once(all_run_ids)
         
-        # Filter to only include circuits for the requested run_ids (including baseline)
+        # Filter to only include circuits for the requested run_ids (including baselines)
         filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
         
         # Use the individual experiment class with filtered circuits
-        result = self.baseline_logit_diff.run(baseline_run_id, run_ids, filtered_circuit_batch)
+        result = self.baseline_logit_diff.run(baseline_run_ids, run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
 
     def run_all_experiments(
-        self, run_ids: List[str], baseline_run_id: Optional[str] = None
+        self, run_ids: List[str], baseline_run_ids: Optional[List[str]] = None
     ) -> List[ExperimentResult]:
         """
         Run all robustness experiments in sequence.
 
         Args:
             run_ids: List of W&B run IDs to analyze
-            baseline_run_id: Optional baseline run ID for experiments 3 & 4
+            baseline_run_ids: List of baseline run IDs for experiments 3 & 4
 
         Returns:
             List of ExperimentResult objects from all experiments
@@ -204,13 +204,13 @@ class RobustnessExperimentRunner:
         if self.config.verbose:
             print(f"Running all experiments with {len(run_ids)} runs...")
 
-        # Load all circuits once (including baseline if provided)
+        # Load all circuits once (including baselines if provided)
         all_run_ids = run_ids.copy()
-        if baseline_run_id:
-            all_run_ids = [baseline_run_id] + run_ids
+        if baseline_run_ids:
+            all_run_ids = baseline_run_ids + run_ids
         
         if self.config.verbose:
-            print(f"Loading circuits for {len(all_run_ids)} runs (including baseline)...")
+            print(f"Loading circuits for {len(all_run_ids)} runs (including baselines)...")
         
         circuit_batch = self._load_circuits_once(all_run_ids)
 
@@ -221,12 +221,12 @@ class RobustnessExperimentRunner:
         results.append(self.run_pairwise_jaccard_similarity(run_ids))
 
         # Run experiments 3 & 4 (require baseline)
-        if baseline_run_id:
+        if baseline_run_ids:
             results.append(
-                self.run_baseline_jaccard_similarity(baseline_run_id, run_ids)
+                self.run_baseline_jaccard_similarity(baseline_run_ids, run_ids)
             )
             results.append(
-                self.run_baseline_logit_diff_robustness(baseline_run_id, run_ids)
+                self.run_baseline_logit_diff_robustness(baseline_run_ids, run_ids)
             )
 
         if self.config.verbose:

@@ -188,6 +188,38 @@ class MetricComputer:
 
         return baseline_results
 
+    def compute_multiple_baseline_jaccard_indices(
+        self, baseline_run_ids: List[str], circuit_batch: CircuitBatch
+    ) -> Dict[str, Dict[str, Dict[str, float]]]:
+        """
+        Compute Jaccard indices between multiple baseline circuits and all other circuits.
+
+        Args:
+            baseline_run_ids: List of baseline run IDs
+            circuit_batch: CircuitBatch containing circuits
+
+        Returns:
+            Dictionary mapping baseline_run_id to {run_id: {"edges": jaccard_edges, "nodes": jaccard_nodes}}
+        """
+        if self.config.verbose:
+            print(f"Computing multiple baseline Jaccard indices with {len(baseline_run_ids)} baselines...")
+
+        # Validate all baseline IDs exist
+        missing_baselines = [bid for bid in baseline_run_ids if bid not in circuit_batch.run_ids]
+        if missing_baselines:
+            raise ValueError(f"Baseline run IDs not found in circuit batch: {missing_baselines}")
+
+        all_results = {}
+        
+        for baseline_run_id in baseline_run_ids:
+            baseline_results = self.compute_baseline_jaccard_indices(baseline_run_id, circuit_batch)
+            all_results[baseline_run_id] = baseline_results
+
+        if self.config.verbose:
+            print(f"Computed multiple baseline Jaccard indices for {len(baseline_run_ids)} baselines")
+
+        return all_results
+
     def compute_baseline_logit_diff_relative_change(
         self, baseline_run_id: str, circuit_batch: CircuitBatch
     ) -> Dict[str, float]:
@@ -253,6 +285,103 @@ class MetricComputer:
             print(f"Computed relative changes for {len(relative_changes)} circuits")
 
         return relative_changes
+
+    def compute_multiple_baseline_logit_diff_relative_change(
+        self, baseline_run_ids: List[str], circuit_batch: CircuitBatch
+    ) -> Dict[str, Dict[str, float]]:
+        """
+        Compute relative change in logit difference between multiple baseline circuits and other circuits.
+
+        Args:
+            baseline_run_ids: List of baseline run IDs
+            circuit_batch: CircuitBatch containing circuits
+
+        Returns:
+            Dictionary mapping baseline_run_id to {run_id: relative_change_value}
+        """
+        if self.config.verbose:
+            print(f"Computing multiple baseline logit diff relative changes with {len(baseline_run_ids)} baselines...")
+
+        # Validate all baseline IDs exist
+        missing_baselines = [bid for bid in baseline_run_ids if bid not in circuit_batch.run_ids]
+        if missing_baselines:
+            raise ValueError(f"Baseline run IDs not found in circuit batch: {missing_baselines}")
+
+        all_results = {}
+        
+        for baseline_run_id in baseline_run_ids:
+            baseline_results = self.compute_baseline_logit_diff_relative_change(baseline_run_id, circuit_batch)
+            all_results[baseline_run_id] = baseline_results
+
+        if self.config.verbose:
+            print(f"Computed multiple baseline logit diff relative changes for {len(baseline_run_ids)} baselines")
+
+        return all_results
+
+    def compute_multiple_baseline_jaccard_summaries(
+        self, multiple_baseline_results: Dict[str, Dict[str, Dict[str, float]]]
+    ) -> Dict[str, Any]:
+        """
+        Compute summaries for multiple baseline Jaccard results.
+
+        Args:
+            multiple_baseline_results: Results from compute_multiple_baseline_jaccard_indices
+
+        Returns:
+            Dictionary containing per-baseline summaries and overall summary
+        """
+        summaries = {}
+        
+        # Compute per-baseline summaries
+        for baseline_id, baseline_results in multiple_baseline_results.items():
+            summaries[baseline_id] = self.compute_jaccard_statistics(baseline_results)
+        
+        # Compute overall summary across all baselines and circuits
+        all_edges_values = []
+        all_nodes_values = []
+        
+        for baseline_results in multiple_baseline_results.values():
+            for circuit_result in baseline_results.values():
+                all_edges_values.append(circuit_result["edges"])
+                all_nodes_values.append(circuit_result["nodes"])
+        
+        overall_summary = {
+            "edges": self.compute_statistics(all_edges_values),
+            "nodes": self.compute_statistics(all_nodes_values)
+        }
+        
+        summaries["overall"] = overall_summary
+        
+        return summaries
+
+    def compute_multiple_baseline_logit_diff_summaries(
+        self, multiple_baseline_results: Dict[str, Dict[str, float]]
+    ) -> Dict[str, Any]:
+        """
+        Compute summaries for multiple baseline logit diff results.
+
+        Args:
+            multiple_baseline_results: Results from compute_multiple_baseline_logit_diff_relative_change
+
+        Returns:
+            Dictionary containing per-baseline summaries and overall summary
+        """
+        summaries = {}
+        
+        # Compute per-baseline summaries
+        for baseline_id, baseline_results in multiple_baseline_results.items():
+            values = list(baseline_results.values())
+            summaries[baseline_id] = self.compute_statistics(values)
+        
+        # Compute overall summary across all baselines and circuits
+        all_values = []
+        for baseline_results in multiple_baseline_results.values():
+            all_values.extend(baseline_results.values())
+        
+        overall_summary = self.compute_statistics(all_values)
+        summaries["overall"] = overall_summary
+        
+        return summaries
 
     def compute_statistics(self, values: List[float]) -> Dict[str, float]:
         """
