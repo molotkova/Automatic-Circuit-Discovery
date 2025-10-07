@@ -29,7 +29,8 @@ class LogitDiffAnalysis:
 
     def run(self, run_ids: List[str], circuit_batch: CircuitBatch = None) -> ExperimentResult:
         """
-        Run the logit difference analysis experiment.
+        Run the logit difference calibration experiment.
+        For the batch of circuits, compute logit difference produced by each circuit and aggregate statistics.
 
         Args:
             run_ids: List of W&B run IDs to analyze

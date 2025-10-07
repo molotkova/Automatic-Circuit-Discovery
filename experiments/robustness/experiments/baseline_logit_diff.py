@@ -37,7 +37,10 @@ class BaselineLogitDiffAnalysis:
 
     def run(self, baseline_run_id: str, run_ids: List[str], circuit_batch: CircuitBatch = None) -> ExperimentResult:
         """
-        Run the baseline logit difference robustness analysis experiment.
+        Run experiment for the logit difference relative change.
+        @param baseline_run_id: Run ID of the baseline circuit
+        @param run_ids: List of other W&B run IDs to compare with baseline
+        @param circuit_batch: Optional pre-loaded circuit batch
 
         Args:
             baseline_run_id: Run ID of the baseline circuit
