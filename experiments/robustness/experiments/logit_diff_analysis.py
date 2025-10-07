@@ -47,7 +47,7 @@ class LogitDiffAnalysis:
             circuit_batch = self.loader.load_circuits_batch(run_ids)
 
         # Compute logit differences
-        logit_diffs = self.metrics.compute_logit_differences(circuit_batch)
+        logit_diffs = self.metrics.compute_logit_differences(circuit_batch, run_ids)
 
         # Compute statistics
         values = list(logit_diffs.values())

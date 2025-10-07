@@ -47,7 +47,7 @@ class PairwiseJaccardAnalysis:
             circuit_batch = self.loader.load_circuits_batch(run_ids)
 
         # Compute pairwise Jaccard indices
-        pairwise_results = self.metrics.compute_pairwise_jaccard_indices(circuit_batch)
+        pairwise_results = self.metrics.compute_pairwise_jaccard_indices(circuit_batch, run_ids)
 
         # Compute statistics for edges and nodes separately
         summary = self.metrics.compute_pairwise_jaccard_statistics(pairwise_results)

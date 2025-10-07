@@ -61,12 +61,12 @@ class BaselineLogitDiffAnalysis:
             circuit_batch = self.loader.load_circuits_batch(all_run_ids)
 
         # Compute logit differences for all circuits once
-        all_logit_diffs = self.metrics.compute_logit_differences(circuit_batch)
+        all_logit_diffs = self.metrics.compute_logit_differences(circuit_batch, all_run_ids)
 
         if len(baseline_run_ids) == 1:
             # Single baseline case - use original method
             relative_changes = self.metrics.compute_baseline_logit_diff_relative_change(
-                baseline_run_ids[0], circuit_batch
+                baseline_run_ids[0], circuit_batch, run_ids
             )
             values = list(relative_changes.values())
             summary = self.metrics.compute_statistics(values)
@@ -103,7 +103,7 @@ class BaselineLogitDiffAnalysis:
         else:
             # Multiple baselines case
             multiple_baseline_results = self.metrics.compute_multiple_baseline_logit_diff_relative_change(
-                baseline_run_ids, circuit_batch
+                baseline_run_ids, circuit_batch, run_ids
             )
             summaries = self.metrics.compute_multiple_baseline_logit_diff_summaries(multiple_baseline_results)
 

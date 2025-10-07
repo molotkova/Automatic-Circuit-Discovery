@@ -56,7 +56,7 @@ class BaselineJaccardAnalysis:
         if len(baseline_run_ids) == 1:
             # Single baseline case - use original method
             baseline_results = self.metrics.compute_baseline_jaccard_indices(
-                baseline_run_ids[0], circuit_batch
+                baseline_run_ids[0], circuit_batch, run_ids
             )
             summary = self.metrics.compute_jaccard_statistics(baseline_results)
             
@@ -79,7 +79,7 @@ class BaselineJaccardAnalysis:
         else:
             # Multiple baselines case
             multiple_baseline_results = self.metrics.compute_multiple_baseline_jaccard_indices(
-                baseline_run_ids, circuit_batch
+                baseline_run_ids, circuit_batch, run_ids
             )
             summaries = self.metrics.compute_multiple_baseline_jaccard_summaries(multiple_baseline_results)
             
