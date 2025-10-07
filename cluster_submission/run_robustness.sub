@@ -22,6 +22,15 @@ error  = logs_cluster/$(Clusterid).$(ProcId).err
 log    = logs_cluster/$(Clusterid).$(ProcId).log
 
 environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
-arguments = ""
 
+# arguments = "None"
+# queue
+
+arguments = "swap_dataset_roles"
 queue
+
+# arguments = "add_random_prefixes"
+# queue
+# 
+# arguments = "shuffle_abc_prompts"
+# queue
