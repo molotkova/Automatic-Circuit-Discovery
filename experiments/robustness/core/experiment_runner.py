@@ -79,6 +79,41 @@ class RobustnessExperimentRunner:
         if self.config.verbose:
             print("Circuit cache cleared.")
 
+    def _filter_circuit_batch(self, circuit_batch: CircuitBatch, run_ids: List[str]) -> CircuitBatch:
+        """
+        Filter a circuit batch to only include circuits for the specified run_ids.
+        
+        Args:
+            circuit_batch: Full circuit batch to filter
+            run_ids: List of run IDs to keep in the filtered batch
+            
+        Returns:
+            Filtered CircuitBatch containing only the specified circuits
+        """
+        # Check that all requested run_ids exist in the batch
+        missing_ids = [run_id for run_id in run_ids if run_id not in circuit_batch.circuits]
+        if missing_ids:
+            raise ValueError(f"Run IDs not found in circuit batch: {missing_ids}")
+        
+        # Filter circuits and metadata
+        filtered_circuits = {run_id: circuit_batch.circuits[run_id] for run_id in run_ids}
+        filtered_metadata = {run_id: circuit_batch.run_metadata[run_id] for run_id in run_ids}
+        
+        # Create new filtered batch with same experiment setup
+        filtered_batch = CircuitBatch(
+            circuits=filtered_circuits,
+            experiment=circuit_batch.experiment,
+            things=circuit_batch.things,
+            run_metadata=filtered_metadata,
+            config=circuit_batch.config,
+            timestamp=circuit_batch.timestamp,
+        )
+        
+        if self.config.verbose:
+            print(f"Filtered circuit batch: {len(circuit_batch.circuits)} -> {len(filtered_circuits)} circuits")
+        
+        return filtered_batch
+
     def run_logit_difference_analysis(self, run_ids: List[str]) -> ExperimentResult:
         """Run Logit Difference Analysis experiment."""
         if self.config.verbose:
@@ -87,8 +122,11 @@ class RobustnessExperimentRunner:
         # Load circuits once and reuse
         circuit_batch = self._load_circuits_once(run_ids)
         
-        # Use the individual experiment class with cached circuits
-        result = self.logit_diff_analysis.run(run_ids, circuit_batch)
+        # Filter to only include perturbed circuits
+        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, run_ids)
+        
+        # Use the individual experiment class with filtered circuits
+        result = self.logit_diff_analysis.run(run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -101,8 +139,11 @@ class RobustnessExperimentRunner:
         # Load circuits once and reuse
         circuit_batch = self._load_circuits_once(run_ids)
         
-        # Use the individual experiment class with cached circuits
-        result = self.pairwise_jaccard.run(run_ids, circuit_batch)
+        # Filter to only include perturbed circuits
+        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, run_ids)
+        
+        # Use the individual experiment class with filtered circuits
+        result = self.pairwise_jaccard.run(run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -118,8 +159,11 @@ class RobustnessExperimentRunner:
         all_run_ids = [baseline_run_id] + run_ids
         circuit_batch = self._load_circuits_once(all_run_ids)
         
-        # Use the individual experiment class with cached circuits
-        result = self.baseline_jaccard.run(baseline_run_id, run_ids, circuit_batch)
+        # Filter to only include circuits for the requested run_ids (including baseline)
+        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
+        
+        # Use the individual experiment class with filtered circuits
+        result = self.baseline_jaccard.run(baseline_run_id, run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -135,8 +179,11 @@ class RobustnessExperimentRunner:
         all_run_ids = [baseline_run_id] + run_ids
         circuit_batch = self._load_circuits_once(all_run_ids)
         
-        # Use the individual experiment class with cached circuits
-        result = self.baseline_logit_diff.run(baseline_run_id, run_ids, circuit_batch)
+        # Filter to only include circuits for the requested run_ids (including baseline)
+        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
+        
+        # Use the individual experiment class with filtered circuits
+        result = self.baseline_logit_diff.run(baseline_run_id, run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
