@@ -51,7 +51,7 @@ case "$PERTURBATION_TYPE" in
             --experiment all \
             --perturbation "$PERTURBATION_TYPE" \
             --run-ids oej7igco q1aj4v7a 0gfdvfex 3j7xmd4m m7ocizzd mva8de2j no4ot2lk rg4s225f bpryslek mzuyijib \
-            --baseline-id sjr6k1ip \
+            --baseline-ids 4cqitqq2 gkapr9d2 qx86aybd hhb2j8ny h3m3up4z q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
             --num-examples 100
         ;;
@@ -60,7 +60,7 @@ case "$PERTURBATION_TYPE" in
             --experiment all \
             --perturbation "$PERTURBATION_TYPE" \
             --run-ids 4x4nnkmc 84n391j5 er9ukc3m 1jk51d9n fkla2wkv k2uu5tlh pzlq8fv0 vedrvood xk8u910v e1scwu2z \
-            --baseline-id sjr6k1ip \
+            --baseline-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
             --num-examples 100
         ;;
@@ -69,7 +69,7 @@ case "$PERTURBATION_TYPE" in
             --experiment all \
             --perturbation "$PERTURBATION_TYPE" \
             --run-ids 2cmlgn4z 9woq5yej pozq1kcl uuywclwi 1cjeqiq7 285k2zbj gp4litlj m278sb60 m71uvccm xm64deab \
-            --baseline-id sjr6k1ip \
+            --baseline-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
             --num-examples 100
         ;;
@@ -78,7 +78,7 @@ case "$PERTURBATION_TYPE" in
             --experiment all \
             --perturbation "$PERTURBATION_TYPE" \
             --run-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
-            --baseline-id sjr6k1ip \
+            --baseline-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
             --num-examples 100
         ;;
