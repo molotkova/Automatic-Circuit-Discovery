@@ -918,3 +918,30 @@ class TLACDCExperiment:
         finally:
             self.corr = old_exp_corr
         return out
+
+    def get_probs_on_corr(self, corr: TLACDCCorrespondence, data: torch.Tensor) -> torch.Tensor:
+        """Get probabilities over vocabulary for end token prediction with a new correspondence ``corr``.
+
+        Args:
+            corr: The correspondence to use for the forward pass
+            data: Input data tensor
+
+        Returns:
+            Probabilities over vocabulary for the last position [batch_size, vocab_size]
+        """
+        old_exp_corr = self.corr
+        try:
+            self.corr = corr
+            self.model.reset_hooks()
+            self.setup_model_hooks(
+                add_sender_hooks=True,
+                add_receiver_hooks=True,
+                doing_acdc_runs=False,
+            )
+            logits = self.model(data)
+            # Extract logits for the last position and convert to probabilities
+            last_pos_logits = logits[:, -1, :]  # [batch_size, vocab_size]
+            probabilities = F.softmax(last_pos_logits, dim=-1)  # [batch_size, vocab_size]
+            return probabilities
+        finally:
+            self.corr = old_exp_corr
