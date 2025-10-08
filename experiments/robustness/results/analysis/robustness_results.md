@@ -27,8 +27,10 @@
 |--------|-------|-------|---------|
 | jaccard: calibration | $0.976 \pm 0.018$ | $0.966 \pm 0.026$ | - |
 | jaccard: circuit to baseline circuit (averaging over other than baseline circuits) | $0.740 \pm 0.014$ | $0.721 \pm 0.021$ | - |
+| jaccard: circuit to baseline circuit (averaging over all circuits) | - | - | - |
 | $LD$: calibration | - | - | $1.179 \pm 0.000$ |
 | $\Delta_{LD}$: circuit minus baseline circuit (averaging over other than baseline circuits) | - | - |$$0.235 \pm 0.000$$ |
+| $\Delta_{LD}$: circuit minus baseline circuit (averaging over all circuits) | - | - | - |
 
 ## swap_dataset_roles
 
@@ -36,5 +38,7 @@
 |--------|-------|-------|---------|
 | jaccard: calibration | $0.813 \pm 0.103$ | $0.826 \pm 0.093$ | - |
 | jaccard: circuit to baseline circuit (averaging over other than baseline circuits) | $0.358 \pm 0.034$ | $0.340 \pm 0.030$ | - |
+| jaccard: circuit to baseline circuit (averaging over all circuits) | $0.329 \pm 0.039$ | $0.323 \pm 0.039$ | - |
 | $LD$: calibration | - | - | $1.170 \pm 0.024$ |
 | $\Delta_{LD}$: circuit minus baseline circuit (averaging over other than baseline circuits) | - | - | $0.226 \pm 0.025$ |
+| $\Delta_{LD}$: circuit minus baseline circuit (averaging over all circuits) | - | - | $0.310 \pm 0.193$ |
