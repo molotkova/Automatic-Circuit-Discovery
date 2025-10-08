@@ -9,6 +9,7 @@ from typing import Dict, Any
 from pathlib import Path
 
 from acdc.ioi.utils import get_all_ioi_things
+from acdc.ioi.ioi_dataset import IOIDataset
 from acdc.TLACDCExperiment import TLACDCExperiment
 from utils.circuit_utils import load_single_acdc_run
 
@@ -113,6 +114,15 @@ Examples:
         metric_name=metric_name,
     )
     
+    # Create IOIDataset for token analysis
+    print("Creating IOIDataset for token analysis...")
+    ioi_dataset = IOIDataset(
+        prompt_type="ABBA",
+        N=num_examples*2,
+        nb_templates=1,
+        seed=0
+    )
+    
     # Create TLACDCExperiment
     print("Creating TLACDCExperiment...")
     tl_model = things.tl_model
@@ -153,7 +163,7 @@ Examples:
     
     # Calculate average probabilities for IO and S tokens
     print("Analyzing IO and S token probabilities...")
-    results = get_ioi_average_token_probabilities(probabilities, things.test_data)
+    results = get_ioi_average_token_probabilities(probabilities, ioi_dataset)
     
     # Print results
     print("\n" + "="*60)
@@ -173,7 +183,7 @@ Examples:
     print("Individual example probabilities (first 2):")
     print("Example | IO Prob | S Prob | IO/S Ratio")
     print("-" * 40)
-    for i in range(min(2, len(results['IO_probabilities']))):
+    for i in range(min(10, len(results['IO_probabilities']))):
         io_prob = results['IO_probabilities'][i]
         s_prob = results['S_probabilities'][i]
         ratio = results['IO_vs_S_ratios'][i]
