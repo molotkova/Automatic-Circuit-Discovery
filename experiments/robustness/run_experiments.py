@@ -121,7 +121,6 @@ Examples:
         help="Disable verbose output (overrides --verbose)",
     )
 
-
     return parser.parse_args()
 
 
@@ -130,16 +129,12 @@ def create_config(args: argparse.Namespace) -> ExperimentConfig:
     # Convert "None" string to None for perturbation
     perturbation = None if args.perturbation == "None" else args.perturbation
     
-    # set isAddRandomPrefixes=True when perturbation is add_random_prefixes
-    isAddRandomPrefixes = perturbation == "add_random_prefixes"
-    
     return ExperimentConfig(
         project_name=args.project_name,
         device=args.device,
         num_examples=args.num_examples,
         metric_name=args.metric_name,
         perturbation=perturbation,
-        isAddRandomPrefixes=isAddRandomPrefixes,
         output_dir=Path(args.output_dir),
         verbose=args.verbose and not args.quiet,
     )

@@ -23,7 +23,6 @@ class ExperimentConfig:
     num_examples: int = 100
     metric_name: str = "logit_diff"
     perturbation: Optional[str] = None
-    isAddRandomPrefixes: bool = False
 
     # Paths
     output_dir: Path = Path("experiments/robustness/results")

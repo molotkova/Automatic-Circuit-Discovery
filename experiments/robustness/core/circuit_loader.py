@@ -42,19 +42,10 @@ class CircuitLoader:
         if self.config.verbose:
             print("Creating experiment setup...")
 
-        # Determine perturbation parameters based on config
-        perturbation_name = self.config.perturbation
-        perturbation_kwargs = None
-        
-        if self.config.isAddRandomPrefixes:
-            perturbation_kwargs = {"seed": 0}
-        
         things = get_all_ioi_things(
             num_examples=self.config.num_examples,
             device=self.config.device,
             metric_name=self.config.metric_name,
-            perturbation_name=perturbation_name,
-            perturbation_kwargs=perturbation_kwargs
         )
 
         tl_model = things.tl_model
