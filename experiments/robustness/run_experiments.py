@@ -36,13 +36,13 @@ Examples:
   python run_experiments.py --experiment baseline-jaccard --run-ids run1 run2 run3 --baseline-ids baseline1 baseline2 baseline3
 
   # Run specific experiment (no baseline needed)
-  python run_experiments.py --experiment logit-diff --run-ids run1 run2 run3
+  python run_experiments.py --experiment logit-diff-calibration --run-ids run1 run2 run3
 
   # Run with custom configuration
   python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-ids run1 --device cpu --num-examples 50
 
   # Run with custom output directory
-  python run_experiments.py --experiment pairwise-jaccard --run-ids run1 run2 --output-dir ./my_results
+  python run_experiments.py --experiment jaccard-calibration --run-ids run1 run2 --output-dir ./my_results
         """,
     )
 
@@ -52,8 +52,8 @@ Examples:
         required=True,
         choices=[
             "all",
-            "logit-diff",
-            "pairwise-jaccard",
+            "logit-diff-calibration",
+            "jaccard-calibration",
             "baseline-jaccard",
         ],
         help="Experiment to run",
@@ -150,7 +150,7 @@ def validate_arguments(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     # Check if baseline is provided when not needed
-    if args.experiment in ["logit-diff", "pairwise-jaccard"] and args.baseline_ids:
+    if args.experiment in ["logit-diff-calibration", "jaccard-calibration"] and args.baseline_ids:
         print(
             f"Warning: Experiment '{args.experiment}' does not use baseline, ignoring --baseline-ids"
         )
@@ -202,9 +202,9 @@ def main():
     if args.experiment == "all":
         # For 'all' experiments, use all baseline IDs if provided
         runner.run_all_experiments(args.run_ids, args.baseline_ids)
-    elif args.experiment == "logit-diff":
+    elif args.experiment == "logit-diff-calibration":
         runner.run_logit_difference_analysis(args.run_ids)
-    elif args.experiment == "pairwise-jaccard":
+    elif args.experiment == "jaccard-calibration":
         runner.run_pairwise_jaccard_similarity(args.run_ids)
     elif args.experiment == "baseline-jaccard":
         runner.run_baseline_jaccard_similarity(args.baseline_ids, args.run_ids)
