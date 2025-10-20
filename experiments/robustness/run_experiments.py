@@ -55,7 +55,6 @@ Examples:
             "logit-diff",
             "pairwise-jaccard",
             "baseline-jaccard",
-            "baseline-logit-diff",
         ],
         help="Experiment to run",
     )
@@ -144,7 +143,7 @@ def validate_arguments(args: argparse.Namespace) -> None:
     """Validate command line arguments."""
     # Check if baseline is required
     if (
-        args.experiment in ["baseline-jaccard", "baseline-logit-diff"]
+        args.experiment in ["baseline-jaccard"]
         and not args.baseline_ids
     ):
         print(f"Error: Experiment '{args.experiment}' requires --baseline-ids")
@@ -209,8 +208,6 @@ def main():
         runner.run_pairwise_jaccard_similarity(args.run_ids)
     elif args.experiment == "baseline-jaccard":
         runner.run_baseline_jaccard_similarity(args.baseline_ids, args.run_ids)
-    elif args.experiment == "baseline-logit-diff":
-        runner.run_baseline_logit_diff_robustness(args.baseline_ids, args.run_ids)
 
     print(f"\nExperiments completed successfully!")
     print(f"Results saved to: {config.output_dir}")

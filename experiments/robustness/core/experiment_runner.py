@@ -9,7 +9,6 @@ from experiments.robustness.experiments import (
     LogitDiffAnalysis,
     PairwiseJaccardAnalysis,
     BaselineJaccardAnalysis,
-    BaselineLogitDiffAnalysis,
 )
 
 
@@ -38,7 +37,6 @@ class RobustnessExperimentRunner:
         self.logit_diff_analysis = LogitDiffAnalysis(config)
         self.pairwise_jaccard = PairwiseJaccardAnalysis(config)
         self.baseline_jaccard = BaselineJaccardAnalysis(config)
-        self.baseline_logit_diff = BaselineLogitDiffAnalysis(config)
 
         # Circuit caching for reuse across experiments
         self._cached_circuit_batch: Optional[CircuitBatch] = None
@@ -125,22 +123,6 @@ class RobustnessExperimentRunner:
         self.results_manager.save_results(result)
         return result
 
-    def run_baseline_logit_diff_robustness(
-        self, baseline_run_ids: List[str], run_ids: List[str]
-    ) -> ExperimentResult:
-        """Run Baseline Logit Difference Robustness experiment."""
-        if self.config.verbose:
-            print(f"Running Baseline Logit Difference Robustness...")
-
-        # Load circuits for all runs (baselines + run_ids)
-        all_run_ids = baseline_run_ids + run_ids
-        circuit_batch = self._load_circuits_once(all_run_ids)
-        
-        # Use the individual experiment class
-        result = self.baseline_logit_diff.run(baseline_run_ids, run_ids, circuit_batch)
-        
-        self.results_manager.save_results(result)
-        return result
 
     def run_all_experiments(
         self, run_ids: List[str], baseline_run_ids: Optional[List[str]] = None
@@ -150,7 +132,7 @@ class RobustnessExperimentRunner:
 
         Args:
             run_ids: List of W&B run IDs to analyze
-            baseline_run_ids: List of baseline run IDs for experiments 3 & 4
+            baseline_run_ids: List of baseline run IDs for experiment 3
 
         Returns:
             List of ExperimentResult objects from all experiments
@@ -174,13 +156,10 @@ class RobustnessExperimentRunner:
         results.append(self.run_logit_difference_analysis(run_ids))
         results.append(self.run_pairwise_jaccard_similarity(run_ids))
 
-        # Run experiments 3 & 4 (require baseline)
+        # Run experiment 3 (requires baseline)
         if baseline_run_ids:
             results.append(
                 self.run_baseline_jaccard_similarity(baseline_run_ids, run_ids)
-            )
-            results.append(
-                self.run_baseline_logit_diff_robustness(baseline_run_ids, run_ids)
             )
 
         if self.config.verbose:

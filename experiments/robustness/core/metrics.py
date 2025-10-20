@@ -271,112 +271,7 @@ class MetricComputer:
 
         return all_results
 
-    def compute_baseline_logit_diff_relative_change(
-        self, baseline_run_id: str, circuit_batch: CircuitBatch, run_ids: List[str]
-    ) -> Dict[str, float]:
-        """
-        Compute relative change in logit difference between baseline and other circuits.
 
-        The relative change is defined as:
-        |logit_diff_2 - logit_diff_1| / |logit_diff_1|
-
-        Args:
-            baseline_run_id: Run ID of the baseline circuit
-            circuit_batch: CircuitBatch containing circuits
-            run_ids: List of run IDs to compute relative changes for (excluding baseline)
-
-        Returns:
-            Dictionary mapping run_id to relative change value
-        """
-        if self.config.verbose:
-            print(
-                f"Computing baseline logit diff relative changes with {baseline_run_id}..."
-            )
-
-        # Include baseline in the filtering
-        all_run_ids = [baseline_run_id] + run_ids
-        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
-
-        if baseline_run_id not in filtered_circuit_batch.run_ids:
-            raise ValueError(
-                f"Baseline run ID {baseline_run_id} not found in circuit batch"
-            )
-
-        # Ensure corrupted cache is set up
-        filtered_circuit_batch.experiment.setup_corrupted_cache()
-
-        # Compute baseline logit difference
-        baseline_circuit = filtered_circuit_batch.get_circuit(baseline_run_id)
-        baseline_logit_diff = self._compute_logit_diff_for_circuit(
-            baseline_circuit, filtered_circuit_batch, baseline_run_id
-        )
-
-        # Compute relative changes for all other circuits
-        relative_changes = {}
-        for run_id in run_ids:
-            # Compute logit difference for this circuit
-            circuit = filtered_circuit_batch.get_circuit(run_id)
-            circuit_logit_diff = self._compute_logit_diff_for_circuit(
-                circuit, filtered_circuit_batch, run_id
-            )
-
-            # Compute relative change
-            absolute_diff = abs(circuit_logit_diff - baseline_logit_diff)
-            absolute_baseline = abs(baseline_logit_diff)
-
-            if absolute_baseline == 0:
-                # If baseline is zero, return the absolute difference
-                relative_change = absolute_diff
-                if self.config.verbose:
-                    print(
-                        f"Warning: Baseline logit difference is 0, returning absolute difference: {absolute_diff}"
-                    )
-            else:
-                relative_change = absolute_diff / absolute_baseline
-
-            relative_changes[run_id] = relative_change
-
-        if self.config.verbose:
-            print(f"Computed relative changes for {len(relative_changes)} circuits")
-
-        return relative_changes
-
-    def compute_multiple_baseline_logit_diff_relative_change(
-        self, baseline_run_ids: List[str], circuit_batch: CircuitBatch, run_ids: List[str]
-    ) -> Dict[str, Dict[str, float]]:
-        """
-        Compute relative change in logit difference between multiple baseline circuits and other circuits.
-
-        Args:
-            baseline_run_ids: List of baseline run IDs
-            circuit_batch: CircuitBatch containing circuits
-            run_ids: List of run IDs to compute relative changes for (excluding baselines)
-
-        Returns:
-            Dictionary mapping baseline_run_id to {run_id: relative_change_value}
-        """
-        if self.config.verbose:
-            print(f"Computing multiple baseline logit diff relative changes with {len(baseline_run_ids)} baselines...")
-
-        # Include all baselines in the filtering
-        all_run_ids = baseline_run_ids + run_ids
-        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
-
-        # Validate all baseline IDs exist
-        missing_baselines = [bid for bid in baseline_run_ids if bid not in filtered_circuit_batch.run_ids]
-        if missing_baselines:
-            raise ValueError(f"Baseline run IDs not found in circuit batch: {missing_baselines}")
-
-        all_results = {}
-        
-        for baseline_run_id in baseline_run_ids:
-            baseline_results = self.compute_baseline_logit_diff_relative_change(baseline_run_id, filtered_circuit_batch, run_ids)
-            all_results[baseline_run_id] = baseline_results
-
-        if self.config.verbose:
-            print(f"Computed multiple baseline logit diff relative changes for {len(baseline_run_ids)} baselines")
-
-        return all_results
 
     def compute_multiple_baseline_jaccard_summaries(
         self, multiple_baseline_results: Dict[str, Dict[str, Dict[str, float]]]
@@ -414,34 +309,6 @@ class MetricComputer:
         
         return summaries
 
-    def compute_multiple_baseline_logit_diff_summaries(
-        self, multiple_baseline_results: Dict[str, Dict[str, float]]
-    ) -> Dict[str, Any]:
-        """
-        Compute summaries for multiple baseline logit diff results.
-
-        Args:
-            multiple_baseline_results: Results from compute_multiple_baseline_logit_diff_relative_change
-
-        Returns:
-            Dictionary containing per-baseline summaries and overall summary
-        """
-        summaries = {}
-        
-        # Compute per-baseline summaries
-        for baseline_id, baseline_results in multiple_baseline_results.items():
-            values = list(baseline_results.values())
-            summaries[baseline_id] = self.compute_statistics(values)
-        
-        # Compute overall summary across all baselines and circuits
-        all_values = []
-        for baseline_results in multiple_baseline_results.values():
-            all_values.extend(baseline_results.values())
-        
-        overall_summary = self.compute_statistics(all_values)
-        summaries["overall"] = overall_summary
-        
-        return summaries
 
     def compute_statistics(self, values: List[float]) -> Dict[str, float]:
         """
