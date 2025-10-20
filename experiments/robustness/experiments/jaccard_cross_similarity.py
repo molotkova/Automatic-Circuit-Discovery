@@ -7,7 +7,7 @@ from experiments.robustness.config import ExperimentConfig, ExperimentResult, Ci
 from experiments.robustness.core import CircuitLoader, MetricComputer
 
 
-class BaselineJaccardAnalysis:
+class JaccardCrossSimilarityAnalysis:
     """
     Compare baseline circuit similarity with other circuits.
 
@@ -19,7 +19,7 @@ class BaselineJaccardAnalysis:
 
     def __init__(self, config: ExperimentConfig):
         """
-        Initialize the baseline Jaccard analysis experiment.
+        Initialize the jaccard cross similarity analysis experiment.
 
         Args:
             config: Experiment configuration
@@ -30,7 +30,7 @@ class BaselineJaccardAnalysis:
 
     def run(self, baseline_run_ids: List[str], run_ids: List[str], circuit_batch: CircuitBatch = None) -> ExperimentResult:
         """
-        Run the baseline Jaccard similarity analysis experiment.
+        Run the jaccard cross similarity analysis experiment.
 
         Args:
             baseline_run_ids: List of baseline run IDs (can be single element or multiple elements)
@@ -42,9 +42,9 @@ class BaselineJaccardAnalysis:
         """
         if self.config.verbose:
             if len(baseline_run_ids) == 1:
-                print(f"Running baseline Jaccard analysis with baseline {baseline_run_ids[0]}...")
+                print(f"Running jaccard cross similarity analysis with baseline {baseline_run_ids[0]}...")
             else:
-                print(f"Running baseline Jaccard analysis with {len(baseline_run_ids)} baselines...")
+                print(f"Running jaccard cross similarity analysis with {len(baseline_run_ids)} baselines...")
 
         # Include all baselines in the run_ids for result metadata
         all_run_ids = baseline_run_ids + run_ids
@@ -61,7 +61,7 @@ class BaselineJaccardAnalysis:
             summary = self.metrics.compute_jaccard_statistics(baseline_results)
             
             result = ExperimentResult(
-                experiment_type="baseline_jaccard_similarity",
+                experiment_type="jaccard_cross_similarity",
                 run_ids=all_run_ids,
                 results={
                     "baseline_run_id": baseline_run_ids[0],
@@ -84,7 +84,7 @@ class BaselineJaccardAnalysis:
             summaries = self.metrics.compute_multiple_baseline_jaccard_summaries(multiple_baseline_results)
             
             result = ExperimentResult(
-                experiment_type="baseline_jaccard_similarity",
+                experiment_type="jaccard_cross_similarity",
                 run_ids=all_run_ids,
                 results={
                     "baseline_run_ids": baseline_run_ids,
@@ -103,7 +103,7 @@ class BaselineJaccardAnalysis:
 
         if self.config.verbose:
             if len(baseline_run_ids) == 1:
-                print(f"Baseline Jaccard analysis complete:")
+                print(f"Jaccard cross similarity analysis complete:")
                 print(f"  Baseline: {baseline_run_ids[0]}")
                 print(f"  Comparisons: {len(baseline_results)}")
                 print(
@@ -113,7 +113,7 @@ class BaselineJaccardAnalysis:
                     f"  Nodes - Mean: {summary['nodes']['mean']:.4f}, Std: {summary['nodes']['std']:.4f}"
                 )
             else:
-                print(f"Baseline Jaccard analysis complete:")
+                print(f"Jaccard cross similarity analysis complete:")
                 print(f"  Baselines: {baseline_run_ids}")
                 print(f"  Total comparisons: {result.metadata['total_comparisons']}")
                 overall_summary = summaries["overall"]

@@ -8,7 +8,7 @@ from experiments.robustness.core import CircuitLoader, MetricComputer, ResultsMa
 from experiments.robustness.experiments import (
     LogitDiffAnalysis,
     PairwiseJaccardAnalysis,
-    BaselineJaccardAnalysis,
+    JaccardCrossSimilarityAnalysis,
 )
 
 
@@ -36,7 +36,7 @@ class RobustnessExperimentRunner:
         # Initialize experiment classes
         self.logit_diff_analysis = LogitDiffAnalysis(config)
         self.pairwise_jaccard = PairwiseJaccardAnalysis(config)
-        self.baseline_jaccard = BaselineJaccardAnalysis(config)
+        self.jaccard_cross_similarity = JaccardCrossSimilarityAnalysis(config)
 
         # Circuit caching for reuse across experiments
         self._cached_circuit_batch: Optional[CircuitBatch] = None
@@ -106,19 +106,19 @@ class RobustnessExperimentRunner:
         self.results_manager.save_results(result)
         return result
 
-    def run_baseline_jaccard_similarity(
+    def run_jaccard_cross_similarity(
         self, baseline_run_ids: List[str], run_ids: List[str]
     ) -> ExperimentResult:
-        """Run Baseline Jaccard Similarity experiment."""
+        """Run Jaccard Cross Similarity experiment."""
         if self.config.verbose:
-            print(f"Running Baseline Jaccard Similarity...")
+            print(f"Running Jaccard Cross Similarity...")
 
         # Load circuits for all runs (baselines + run_ids)
         all_run_ids = baseline_run_ids + run_ids
         circuit_batch = self._load_circuits_once(all_run_ids)
         
         # Use the individual experiment class
-        result = self.baseline_jaccard.run(baseline_run_ids, run_ids, circuit_batch)
+        result = self.jaccard_cross_similarity.run(baseline_run_ids, run_ids, circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -159,7 +159,7 @@ class RobustnessExperimentRunner:
         # Run experiment 3 (requires baseline)
         if baseline_run_ids:
             results.append(
-                self.run_baseline_jaccard_similarity(baseline_run_ids, run_ids)
+                self.run_jaccard_cross_similarity(baseline_run_ids, run_ids)
             )
 
         if self.config.verbose:

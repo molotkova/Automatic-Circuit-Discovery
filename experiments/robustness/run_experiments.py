@@ -30,10 +30,10 @@ Examples:
   python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-ids baseline1 baseline2 baseline3
 
   # Run baseline experiment with single baseline
-  python run_experiments.py --experiment baseline-jaccard --run-ids run1 run2 run3 --baseline-ids run1
+  python run_experiments.py --experiment jaccard-cross-similarity --run-ids run1 run2 run3 --baseline-ids run1
 
   # Run baseline experiment with multiple baselines
-  python run_experiments.py --experiment baseline-jaccard --run-ids run1 run2 run3 --baseline-ids baseline1 baseline2 baseline3
+  python run_experiments.py --experiment jaccard-cross-similarity --run-ids run1 run2 run3 --baseline-ids baseline1 baseline2 baseline3
 
   # Run specific experiment (no baseline needed)
   python run_experiments.py --experiment logit-diff-calibration --run-ids run1 run2 run3
@@ -54,7 +54,7 @@ Examples:
             "all",
             "logit-diff-calibration",
             "jaccard-calibration",
-            "baseline-jaccard",
+            "jaccard-cross-similarity",
         ],
         help="Experiment to run",
     )
@@ -143,7 +143,7 @@ def validate_arguments(args: argparse.Namespace) -> None:
     """Validate command line arguments."""
     # Check if baseline is required
     if (
-        args.experiment in ["baseline-jaccard"]
+        args.experiment in ["jaccard-cross-similarity"]
         and not args.baseline_ids
     ):
         print(f"Error: Experiment '{args.experiment}' requires --baseline-ids")
@@ -206,8 +206,8 @@ def main():
         runner.run_logit_difference_analysis(args.run_ids)
     elif args.experiment == "jaccard-calibration":
         runner.run_pairwise_jaccard_similarity(args.run_ids)
-    elif args.experiment == "baseline-jaccard":
-        runner.run_baseline_jaccard_similarity(args.baseline_ids, args.run_ids)
+    elif args.experiment == "jaccard-cross-similarity":
+        runner.run_jaccard_cross_similarity(args.baseline_ids, args.run_ids)
 
     print(f"\nExperiments completed successfully!")
     print(f"Results saved to: {config.output_dir}")
