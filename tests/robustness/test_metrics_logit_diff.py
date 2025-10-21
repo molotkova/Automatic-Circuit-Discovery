@@ -1,62 +1,8 @@
-import time
-from typing import Any, Callable, Dict, List, Mapping
-
 import pytest
-import torch
 
-from experiments.robustness.config import ExperimentConfig, CircuitBatch
+from experiments.robustness.config import ExperimentConfig
 from experiments.robustness.core.metrics import MetricComputer
-
-
-class FakeCircuit:
-    def __init__(self, run_id: str) -> None:
-        self.run_id: str = run_id
-
-
-class FakeExperiment:
-    def __init__(self, run_id_to_logit_diff: Mapping[str, float]) -> None:
-        self.run_id_to_logit_diff: Mapping[str, float] = run_id_to_logit_diff
-        self._setup_called: bool = False
-
-    def setup_corrupted_cache(self) -> None:
-        self._setup_called = True
-
-    def call_metric_with_corr(
-        self,
-        circuit: FakeCircuit,
-        metric_fn: Callable[[Any], Dict[str, float]],
-        data: Any,
-    ) -> Dict[str, float]:
-        # Return deterministic value for the circuit if provided, else fall back to metric_fn
-        if hasattr(circuit, "run_id") and circuit.run_id in self.run_id_to_logit_diff:
-            return {"test_logit_diff": float(self.run_id_to_logit_diff[circuit.run_id])}
-        return metric_fn(data)
-
-
-class FakeThings:
-    def __init__(self) -> None:
-        self.test_data: object = object()
-        # Not used by FakeExperiment when mapping provided, but keep shape for realism
-        self.test_metrics: Dict[str, Callable[[Any], torch.Tensor]] = {
-            "logit_diff": lambda data: torch.tensor(1.23),
-        }
-
-
-def _make_circuit_batch(run_ids: List[str], run_id_to_logit_diff: Mapping[str, float]) -> CircuitBatch:
-    experiment = FakeExperiment(run_id_to_logit_diff)
-    things = FakeThings()
-    circuits: Dict[str, FakeCircuit] = {rid: FakeCircuit(rid) for rid in run_ids}
-    run_metadata: Dict[str, Dict[str, Any]] = {rid: {"run_id": rid} for rid in run_ids}
-
-    batch = CircuitBatch(
-        circuits=circuits,
-        experiment=experiment,
-        things=things,
-        run_metadata=run_metadata,
-        config=ExperimentConfig(),
-        timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
-    )
-    return batch
+from tests.robustness.test_utils import _make_circuit_batch
 
 
 def test__filter_circuit_batch() -> None:
@@ -69,7 +15,6 @@ def test__filter_circuit_batch() -> None:
     assert set(filtered.run_ids) == {"a", "c"}
     assert set(filtered.circuits.keys()) == {"a", "c"}
     assert set(filtered.run_metadata.keys()) == {"a", "c"}
-    
 
 
 def test__compute_logit_diff_for_circuit_returns_experiment_value() -> None:
