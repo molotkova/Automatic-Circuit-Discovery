@@ -1,5 +1,6 @@
 from typing import List, Optional, Dict, Any, Union
 from pathlib import Path
+from datetime import datetime
 
 import sys
 
@@ -31,7 +32,10 @@ class RobustnessExperimentRunner:
         self.config = config
         self.loader = CircuitLoader(config)
         self.metrics = MetricComputer(config)
-        self.results_manager = ResultsManager(config.output_dir)
+        
+        # Generate timestamp for this run
+        run_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.results_manager = ResultsManager(config.output_dir, run_timestamp)
 
         # Initialize experiment classes
         self.logit_diff_analysis = LogitDiffAnalysis(config)

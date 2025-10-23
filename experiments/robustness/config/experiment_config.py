@@ -205,13 +205,13 @@ class ExperimentResult:
             result_dict = json.load(f)
         return cls.from_dict(result_dict)
 
-    def get_filename(self, include_timestamp: bool = True) -> str:
+    def get_filename(self) -> str:
         """Generate filename for saving this result."""
-        if include_timestamp:
-            timestamp_str = self.timestamp.replace(":", "-").replace(" ", "_")
-            return f"{self.experiment_type}_{timestamp_str}.json"
-        else:
-            return f"{self.experiment_type}.json"
+        # Get perturbation from config, default to "none" if None
+        perturbation = self.config.get("perturbation")
+        perturbation_str = "none" if perturbation is None else perturbation
+        
+        return f"{self.experiment_type}_{perturbation_str}.json"
 
     def print_summary(self) -> None:
         """Print a summary of the experiment results."""

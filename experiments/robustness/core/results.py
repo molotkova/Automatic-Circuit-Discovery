@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Optional, Union
 from datetime import datetime
 
 import sys
@@ -17,21 +17,32 @@ class ResultsManager:
     experiment results with proper validation and error handling.
     """
 
-    def __init__(self, output_dir: Union[str, Path]):
+    def __init__(self, output_dir: Union[str, Path], run_timestamp: Optional[str] = None):
         """
         Initialize the results manager.
 
         Args:
             output_dir: Directory where results will be saved
+            run_timestamp: Optional timestamp for this run (creates timestamped subdirectory)
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create subdirectories
-        self.logs_dir = self.output_dir / "logs"
+        # Create data directory
         self.data_dir = self.output_dir / "data"
-        self.logs_dir.mkdir(exist_ok=True)
         self.data_dir.mkdir(exist_ok=True)
+
+        # Create timestamped run directory within data directory
+        if run_timestamp:
+            # Convert timestamp to directory-friendly format
+            timestamp_str = run_timestamp.replace(":", "-").replace(" ", "_")
+            self.run_dir = self.data_dir / f"run_{timestamp_str}"
+        else:
+            # Use current timestamp if none provided
+            current_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            self.run_dir = self.data_dir / f"run_{current_timestamp}"
+        
+        self.run_dir.mkdir(parents=True, exist_ok=True)
 
     def save_results(
         self, result: ExperimentResult, filename: Optional[str] = None
@@ -49,7 +60,7 @@ class ResultsManager:
         if filename is None:
             filename = result.get_filename()
 
-        output_path = self.data_dir / filename
+        output_path = self.run_dir / filename
 
         # Convert result to dictionary
         result_dict = result.to_dict()
@@ -77,25 +88,3 @@ class ResultsManager:
 
         return ExperimentResult.from_dict(result_dict)
 
-    def save_results_batch(
-        self, results: List[ExperimentResult], prefix: str = "batch"
-    ) -> List[Path]:
-        """
-        Save multiple results in a batch.
-
-        Args:
-            results: List of ExperimentResult objects
-            prefix: Prefix for batch filenames
-
-        Returns:
-            List of paths to saved files
-        """
-        saved_paths = []
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        for i, result in enumerate(results):
-            filename = f"{prefix}_{timestamp}_{i:03d}_{result.experiment_type}.json"
-            path = self.save_results(result, filename)
-            saved_paths.append(path)
-
-        return saved_paths
