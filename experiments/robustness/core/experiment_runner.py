@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pathlib import Path
 
 import sys
@@ -107,18 +107,37 @@ class RobustnessExperimentRunner:
         return result
 
     def run_jaccard_cross_similarity(
-        self, baseline_run_ids: List[str], run_ids: List[str]
+        self, 
+        baseline_run_ids: Union[List[str], Dict[str, List[str]]], 
+        run_ids: Optional[List[str]] = None
     ) -> ExperimentResult:
         """Run Jaccard Cross Similarity experiment."""
         if self.config.verbose:
             print(f"Running Jaccard Cross Similarity...")
 
-        # Load circuits for all runs (baselines + run_ids)
-        all_run_ids = baseline_run_ids + run_ids
-        circuit_batch = self._load_circuits_once(all_run_ids)
-        
-        # Use the individual experiment class
-        result = self.jaccard_cross_similarity.run(baseline_run_ids, run_ids, circuit_batch)
+        if isinstance(baseline_run_ids, dict):
+            # Dictionary format: {baseline_id: [circuit_ids]}
+            # Collect all unique run IDs
+            all_run_ids = []
+            for baseline_id, circuit_ids in baseline_run_ids.items():
+                all_run_ids.extend([baseline_id] + circuit_ids)
+            all_run_ids = list(set(all_run_ids))  # Remove duplicates
+            
+            circuit_batch = self._load_circuits_once(all_run_ids)
+            
+            # Use the individual experiment class with dict format
+            result = self.jaccard_cross_similarity.run(baseline_run_ids, circuit_batch=circuit_batch)
+        else:
+            # List format: baseline_run_ids + run_ids
+            if run_ids is None:
+                raise ValueError("run_ids must be provided when baseline_run_ids is a list")
+            
+            # Load circuits for all runs (baselines + run_ids)
+            all_run_ids = baseline_run_ids + run_ids
+            circuit_batch = self._load_circuits_once(all_run_ids)
+            
+            # Use the individual experiment class with list format
+            result = self.jaccard_cross_similarity.run(baseline_run_ids, run_ids, circuit_batch)
         
         self.results_manager.save_results(result)
         return result
