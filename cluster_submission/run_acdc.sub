@@ -23,127 +23,113 @@ log    = logs_cluster/$(Clusterid).$(ProcId).log
 
 environment = "CLUSTER_ID=$(Clusterid) PROC_ID=$(ProcId)"
 
-# Run baseline with 10 different random dataset seeds
-arguments = None 42 10
-queue
+# # Run baseline with 10 different random dataset seeds
+# perturbation = None
+# perturbation_seed = 42
+# arguments = $(perturbation) $(perturbation_seed) $(dataset_seed)
+# queue dataset_seed from (
+#     10
+#     11
+#     12
+#     13
+#     14
+#     15
+#     16
+#     17
+#     18
+#     19
+# )
 
-arguments = None 42 11
-queue
 
-arguments = None 42 12
-queue
+# Run shuffle_abc_prompts
 
-arguments = None 42 13
-queue
+# Dataset seed fixed, perturbation seed varied
+perturbation = shuffle_abc_prompts
+dataset_seed = 10
+arguments = $(perturbation) $(perturbation_seed) $(dataset_seed)
+queue perturbation_seed from (
+    42
+    123
+    456
+    789
+    1001
+    2002
+    3003
+    4004
+    5005
+    6006
+)
 
-arguments = None 42 14
-queue
+# Dataset seed varied, perturbation seed fixed
+perturbation = shuffle_abc_prompts
+perturbation_seed = 42
+arguments = $(perturbation) $(perturbation_seed) $(dataset_seed)
+queue dataset_seed from (
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+)
 
-arguments = None 42 15
-queue
 
-arguments = None 42 16
-queue
+# # Run add_random_prefixes 
+# 
+# # Dataset seed fixed, perturbation seed varied
+# perturbation = add_random_prefixes
+# dataset_seed = 10
+# arguments = $(perturbation) $(perturbation_seed) $(dataset_seed)
+# queue perturbation_seed from (
+#     42
+#     123
+#     456
+#     789
+#     1001
+#     2002
+#     3003
+#     4004
+#     5005
+#     6006
+# )
+# 
+# # Dataset seed varied, perturbation seed fixed
+# perturbation = add_random_prefixes
+# perturbation_seed = 42
+# arguments = $(perturbation) $(perturbation_seed) $(dataset_seed)
+# queue dataset_seed from (
+#     10
+#     11
+#     12
+#     13
+#     14
+#     15
+#     16
+#     17
+#     18
+#     19
+# )
 
-arguments = None 42 17
-queue
 
-arguments = None 42 18
-queue
-
-arguments = None 42 19
-queue
-
-# Run shuffle_abc_prompts with 10 different perturbation seeds
-# arguments = shuffle_abc_prompts 42
-# queue
+# # Run swap_dataset_roles
 # 
-# arguments = shuffle_abc_prompts 123
-# queue
-# 
-# arguments = shuffle_abc_prompts 456
-# queue
-# 
-# arguments = shuffle_abc_prompts 789
-# queue
-# 
-# arguments = shuffle_abc_prompts 1001
-# queue
-# 
-# arguments = shuffle_abc_prompts 2002
-# queue
-# 
-# arguments = shuffle_abc_prompts 3003
-# queue
-# 
-# arguments = shuffle_abc_prompts 4004
-# queue
-# 
-# arguments = shuffle_abc_prompts 5005
-# queue
-# 
-# arguments = shuffle_abc_prompts 6006
-# queue
-
-# Run add_random_prefixes with 10 different perturbation seeds
-# arguments = add_random_prefixes 42
-# queue
-# 
-# arguments = add_random_prefixes 123
-# queue
-# 
-# arguments = add_random_prefixes 456
-# queue
-#
-#arguments = add_random_prefixes 789 0
-#queue
-#
-# arguments = add_random_prefixes 1001
-# queue
-# 
-# arguments = add_random_prefixes 2002
-# queue
-# 
-# arguments = add_random_prefixes 3003
-# queue
-# 
-# arguments = add_random_prefixes 4004
-# queue
-# 
-# arguments = add_random_prefixes 5005
-# queue
-# 
-# arguments = add_random_prefixes 6006
-# queue
-
-# Run swap_dataset_roles with 10 different random dataset seeds
-# 
-# arguments = swap_dataset_roles 42 0
-# queue
-# 
-# arguments = swap_dataset_roles 42 1
-# queue
-# 
-# arguments = swap_dataset_roles 42 2
-# queue
-# 
-# arguments = swap_dataset_roles 42 3
-# queue
-# 
-# arguments = swap_dataset_roles 42 4
-# queue
-# 
-# arguments = swap_dataset_roles 42 5
-# queue
-# 
-# arguments = swap_dataset_roles 42 6
-# queue
-# 
-# arguments = swap_dataset_roles 42 7
-# queue
-# 
-# arguments = swap_dataset_roles 42 8
-# queue
-# 
-# arguments = swap_dataset_roles 42 9
-# queue
+# # Dataset seed varied, perturbation seed is fixed but it doesn't matter anyway
+# perturbation = swap_dataset_roles
+# perturbation_seed = 42
+# arguments = $(perturbation) $(perturbation_seed) $(dataset_seed)
+# queue dataset_seed from (
+#     0
+#     1
+#     2
+#     3
+#     4
+#     5
+#     6
+#     7
+#     8
+#     9
+# )
