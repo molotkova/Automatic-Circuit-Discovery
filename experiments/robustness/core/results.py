@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from datetime import datetime
 
 import sys
@@ -69,6 +69,35 @@ class ResultsManager:
         with open(output_path, "w") as f:
             json.dump(result_dict, f, indent=2, default=str)
 
+        return output_path
+
+    def save_plot(
+        self, 
+        figure: Any, 
+        filename: str, 
+        dpi: int = 300,
+        bbox_inches: str = 'tight'
+    ) -> Path:
+        """
+        Save a matplotlib figure to file.
+
+        Args:
+            figure: Matplotlib figure object to save
+            filename: Filename for the plot (e.g., "plot.png")
+            dpi: Resolution for the saved figure (default: 300)
+            bbox_inches: Bounding box inches setting (default: 'tight')
+
+        Returns:
+            Path to the saved plot file
+        """
+        output_path = self.run_dir / filename
+        
+        # Ensure directory exists
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Save the figure
+        figure.savefig(output_path, dpi=dpi, bbox_inches=bbox_inches)
+        
         return output_path
 
     def load_results(self, filepath: Union[str, Path]) -> ExperimentResult:

@@ -10,6 +10,7 @@ from experiments.robustness.experiments import (
     LogitDiffAnalysis,
     PairwiseJaccardAnalysis,
     JaccardCrossSimilarityAnalysis,
+    IOSDistributionAnalysis,
 )
 
 
@@ -33,7 +34,7 @@ class RobustnessExperimentRunner:
         self.loader = CircuitLoader(config)
         self.metrics = MetricComputer(config)
         
-        # Generate timestamp for this run
+        # Generate timestamp for this run (used by ResultsManager and all experiments)
         run_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.results_manager = ResultsManager(config.output_dir, run_timestamp)
 
@@ -41,6 +42,7 @@ class RobustnessExperimentRunner:
         self.logit_diff_analysis = LogitDiffAnalysis(config)
         self.pairwise_jaccard = PairwiseJaccardAnalysis(config)
         self.jaccard_cross_similarity = JaccardCrossSimilarityAnalysis(config)
+        self.io_s_distribution = IOSDistributionAnalysis(config)
 
         # Circuit caching for reuse across experiments
         self._cached_circuit_batch: Optional[CircuitBatch] = None
@@ -144,6 +146,30 @@ class RobustnessExperimentRunner:
             result = self.jaccard_cross_similarity.run(baseline_run_ids, run_ids, circuit_batch)
         
         self.results_manager.save_results(result)
+        return result
+
+    def run_io_s_distribution(self, run_ids: List[str]) -> ExperimentResult:
+        """Run IO-S Distribution Analysis experiment."""
+        if self.config.verbose:
+            print(f"Running IO-S Distribution Analysis...")
+
+        # Load circuits once and reuse
+        circuit_batch = self._load_circuits_once(run_ids)
+        
+        # Use the individual experiment class (returns result and figure)
+        result, plot_figure = self.io_s_distribution.run(run_ids, circuit_batch)
+        
+        # Save both the results and the plot
+        self.results_manager.save_results(result)
+        plot_path = self.results_manager.save_plot(plot_figure, result.results['plot_filename'])
+        
+        # Close the figure to free memory
+        import matplotlib.pyplot as plt
+        plt.close(plot_figure)
+        
+        if self.config.verbose:
+            print(f"  Plot saved to: {plot_path}")
+        
         return result
 
 

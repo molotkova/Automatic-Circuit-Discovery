@@ -37,6 +37,9 @@ Examples:
 
   # Run specific experiment (no baseline needed)
   python run_experiments.py --experiment logit-diff-calibration --run-ids run1 run2 run3
+  
+  # Run IO-S distribution experiment
+  python run_experiments.py --experiment io-s-distribution --run-ids run1 run2 run3
 
   # Run with custom configuration
   python run_experiments.py --experiment all --run-ids run1 run2 run3 --baseline-ids run1 --device cpu --num-examples 50
@@ -55,6 +58,7 @@ Examples:
             "logit-diff-calibration",
             "jaccard-calibration",
             "jaccard-cross-similarity",
+            "io-s-distribution",
         ],
         help="Experiment to run",
     )
@@ -150,7 +154,7 @@ def validate_arguments(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     # Check if baseline is provided when not needed
-    if args.experiment in ["logit-diff-calibration", "jaccard-calibration"] and args.baseline_ids:
+    if args.experiment in ["logit-diff-calibration", "jaccard-calibration", "io-s-distribution"] and args.baseline_ids:
         print(
             f"Warning: Experiment '{args.experiment}' does not use baseline, ignoring --baseline-ids"
         )
@@ -208,6 +212,8 @@ def main():
         runner.run_pairwise_jaccard_similarity(args.run_ids)
     elif args.experiment == "jaccard-cross-similarity":
         runner.run_jaccard_cross_similarity(args.baseline_ids, args.run_ids)
+    elif args.experiment == "io-s-distribution":
+        runner.run_io_s_distribution(args.run_ids)
 
     print(f"\nExperiments completed successfully!")
     print(f"Results saved to: {config.output_dir}")
