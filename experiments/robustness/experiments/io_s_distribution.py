@@ -205,14 +205,14 @@ class IOSDistributionAnalysis:
             seed=0
         )
         
-        # Assert that test_data matches ioi_dataset tokens
+        # Assert that all test_data matches ioi_dataset tokens
         # test_data = default_data[num_examples:, :] where default_data = ioi_dataset.toks[:num_examples*2, :seq_len-1]
         # So test_data corresponds to ioi_dataset.toks[num_examples:, :seq_len-1]
         seq_len = ioi_dataset.toks.shape[1]
-        test_data_first_5 = things.test_data[:5]
-        ioi_dataset_toks_first_5_test = ioi_dataset.toks.long()[self.config.num_examples:self.config.num_examples+5, :seq_len-1].to(self.config.device)
-        assert torch.equal(test_data_first_5, ioi_dataset_toks_first_5_test), \
-            f"test_data[:5] does not match ioi_dataset.toks[{self.config.num_examples}:{self.config.num_examples+5}, :{seq_len-1}]"
+        ioi_dataset_test_toks = ioi_dataset.toks.long()[self.config.num_examples:, :seq_len-1].to(self.config.device)
+        assert torch.equal(things.test_data, ioi_dataset_test_toks), \
+            f"test_data does not match ioi_dataset.toks[{self.config.num_examples}:, :{seq_len-1}]. " \
+            f"Shapes: test_data={things.test_data.shape}, ioi_dataset={ioi_dataset_test_toks.shape}"
         
         # Extract circuits from circuit_batch into a dictionary
         circuits_dict = {run_id: circuit_batch.get_circuit(run_id) for run_id in run_ids}
