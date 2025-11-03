@@ -49,7 +49,7 @@ case "$PERTURBATION_TYPE" in
     "swap_dataset_roles")
         poetry run python -m experiments.robustness.run_experiments \
             --experiment all \
-            --perturbation "$PERTURBATION_TYPE" \
+            --perturbation swap_dataset_roles \
             --run-ids oej7igco q1aj4v7a 0gfdvfex 3j7xmd4m m7ocizzd mva8de2j no4ot2lk rg4s225f bpryslek mzuyijib \
             --baseline-ids 4cqitqq2 gkapr9d2 qx86aybd hhb2j8ny h3m3up4z q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
@@ -58,7 +58,7 @@ case "$PERTURBATION_TYPE" in
     "add_random_prefixes")
         poetry run python -m experiments.robustness.run_experiments \
             --experiment all \
-            --perturbation "$PERTURBATION_TYPE" \
+            --perturbation add_random_prefixes \
             --run-ids 4x4nnkmc 84n391j5 er9ukc3m 1jk51d9n fkla2wkv k2uu5tlh pzlq8fv0 vedrvood xk8u910v e1scwu2z \
             --baseline-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
@@ -67,7 +67,7 @@ case "$PERTURBATION_TYPE" in
     "shuffle_abc_prompts")
         poetry run python -m experiments.robustness.run_experiments \
             --experiment all \
-            --perturbation "$PERTURBATION_TYPE" \
+            --perturbation shuffle_abc_prompts \
             --run-ids 2cmlgn4z 9woq5yej pozq1kcl uuywclwi 1cjeqiq7 285k2zbj gp4litlj m278sb60 m71uvccm xm64deab \
             --baseline-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
@@ -76,7 +76,7 @@ case "$PERTURBATION_TYPE" in
     "None")
         poetry run python -m experiments.robustness.run_experiments \
             --experiment all \
-            --perturbation "$PERTURBATION_TYPE" \
+            --perturbation None \
             --run-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --baseline-ids gkapr9d2 qx86aybd hhb2j8ny h3m3up4z 4cqitqq2 q4i2w4pw yrxtxjdi 1fj8o2b9 1yxiyngt 7u7zmd7q \
             --device cuda \
