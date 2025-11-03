@@ -16,8 +16,8 @@ import sys
 from experiments.robustness.config import ExperimentConfig, ExperimentResult, CircuitBatch
 from experiments.robustness.core import CircuitLoader
 from acdc.ioi.ioi_dataset import IOIDataset
-from acdc.ioi.utils import get_all_ioi_things
-from acdc.TLACDCExperiment import TLACDCExperiment
+
+torch.autograd.set_grad_enabled(False)
 
 
 def get_logits_on_corr(exp, corr, data: torch.Tensor) -> torch.Tensor:
@@ -191,6 +191,10 @@ class IOSDistributionAnalysis:
         if circuit_batch is None:
             circuit_batch = self.loader.load_circuits_batch(run_ids)
 
+        # Reuse things and experiment from CircuitBatch (already set up during circuit loading)
+        things = circuit_batch.things
+        exp = circuit_batch.experiment
+        
         # Create IOIDataset for token analysis
         # Note: test_data uses num_examples*2 samples, but only num_examples to num_examples*2 are test
         # So we need to create dataset with N=num_examples*2 to match the test_data size
@@ -198,16 +202,6 @@ class IOSDistributionAnalysis:
             prompt_type="ABBA",
             N=self.config.num_examples * 2,
             nb_templates=1,
-            seed=0
-        )
-        
-        # Create things for experiment setup
-        if self.config.verbose:
-            print("Creating experiment setup...")
-        things = get_all_ioi_things(
-            num_examples=self.config.num_examples,
-            device=self.config.device,
-            metric_name=self.config.metric_name,
             seed=0
         )
         
@@ -219,26 +213,6 @@ class IOSDistributionAnalysis:
         ioi_dataset_toks_first_5_test = ioi_dataset.toks.long()[self.config.num_examples:self.config.num_examples+5, :seq_len-1].to(self.config.device)
         assert torch.equal(test_data_first_5, ioi_dataset_toks_first_5_test), \
             f"test_data[:5] does not match ioi_dataset.toks[{self.config.num_examples}:{self.config.num_examples+5}, :{seq_len-1}]"
-        
-        # Create new experiment instance
-        tl_model = things.tl_model
-        tl_model.reset_hooks()
-        
-        exp = TLACDCExperiment(
-            model=tl_model,
-            threshold=100_000,
-            early_exit=False,
-            using_wandb=False,
-            zero_ablation=False,
-            ds=things.test_data,
-            ref_ds=things.test_patch_data,
-            metric=things.validation_metric,
-            second_metric=None,
-            verbose=self.config.verbose,
-            use_pos_embed=False,
-            online_cache_cpu=False,
-            corrupted_cache_cpu=False,
-        )
         
         # Extract circuits from circuit_batch into a dictionary
         circuits_dict = {run_id: circuit_batch.get_circuit(run_id) for run_id in run_ids}
