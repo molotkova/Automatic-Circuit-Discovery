@@ -137,6 +137,10 @@ class IOSDistributionAnalysis:
         Returns:
             Matplotlib figure object
         """
+        # Set font to OpenSans for all text elements
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Open Sans', 'DejaVu Sans', 'Arial', 'sans-serif']
+        
         # Explicit color mapping: IO = #aef0c7, S = #dfdaff
         color_mapping = {
             'IO': '#aef0c7',
@@ -163,10 +167,17 @@ class IOSDistributionAnalysis:
         )
         
         # Customize plot
-        plt.xlabel('Token', fontsize=12, fontweight='bold')
-        plt.ylabel('Logit Value', fontsize=12, fontweight='bold')
-        plt.title('IO and S Token Logit Distributions', fontsize=14, fontweight='bold')
+        plt.xlabel('Token', fontsize=12, fontfamily='sans-serif')
+        plt.ylabel('Logit Value', fontsize=12, fontfamily='sans-serif')
+        plt.title('IO and S Token Logit Distributions', fontsize=14, fontfamily='sans-serif')
         plt.grid(axis='y', alpha=0.3, linestyle='--')
+        
+        # Set font for tick labels
+        ax.tick_params(labelsize=10)
+        for label in ax.get_xticklabels():
+            label.set_fontfamily('sans-serif')
+        for label in ax.get_yticklabels():
+            label.set_fontfamily('sans-serif')
         
         # Tight layout to avoid label cutoff
         plt.tight_layout()
@@ -272,7 +283,8 @@ class IOSDistributionAnalysis:
                 'all_io_logits': all_io_logits,
                 'all_s_logits': all_s_logits,
                 'per_circuit_logits': run_results,
-                'summary': summary_stats
+                'summary': summary_stats,
+                'plot_filename': plot_filename  # Store filename for reference
             },
             metadata={
                 'total_circuits': len(run_ids),
