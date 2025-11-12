@@ -98,8 +98,8 @@ class JaccardCrossSimilarityAnalysis:
                 },
                 timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
                 config=self.config.to_dict(),
-                dataset_seeds={run_id: circuit_batch.dataset_seeds.get(run_id) for run_id in all_run_ids} if circuit_batch.dataset_seeds else None,
-                perturbation_seeds={run_id: circuit_batch.perturbation_seeds.get(run_id) for run_id in all_run_ids} if circuit_batch.perturbation_seeds else None,
+                dataset_seeds=circuit_batch.dataset_seeds,
+                perturbation_seeds=circuit_batch.perturbation_seeds,
             )
         else:
             # Multiple baselines case
@@ -124,8 +124,8 @@ class JaccardCrossSimilarityAnalysis:
                 },
                 timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
                 config=self.config.to_dict(),
-                dataset_seeds={run_id: circuit_batch.dataset_seeds.get(run_id) for run_id in all_run_ids} if circuit_batch.dataset_seeds else None,
-                perturbation_seeds={run_id: circuit_batch.perturbation_seeds.get(run_id) for run_id in all_run_ids} if circuit_batch.perturbation_seeds else None,
+                dataset_seeds=circuit_batch.dataset_seeds,
+                perturbation_seeds=circuit_batch.perturbation_seeds,
             )
 
         if self.config.verbose:

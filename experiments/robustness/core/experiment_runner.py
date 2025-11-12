@@ -90,10 +90,13 @@ class RobustnessExperimentRunner:
             print(f"Running Logit Difference Analysis...")
 
         # Load circuits once and reuse
-        circuit_batch = self._load_circuits_once(run_ids)
+        full_circuit_batch = self._load_circuits_once(run_ids)
+        
+        # Filter to only include circuits needed for this experiment
+        filtered_circuit_batch = full_circuit_batch.filter(run_ids)
         
         # Use the individual experiment class
-        result = self.logit_diff_analysis.run(run_ids, circuit_batch)
+        result = self.logit_diff_analysis.run(run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -104,10 +107,13 @@ class RobustnessExperimentRunner:
             print(f"Running Pairwise Jaccard Similarity...")
 
         # Load circuits once and reuse
-        circuit_batch = self._load_circuits_once(run_ids)
+        full_circuit_batch = self._load_circuits_once(run_ids)
+        
+        # Filter to only include circuits needed for this experiment
+        filtered_circuit_batch = full_circuit_batch.filter(run_ids)
         
         # Use the individual experiment class
-        result = self.pairwise_jaccard.run(run_ids, circuit_batch)
+        result = self.pairwise_jaccard.run(run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -129,10 +135,13 @@ class RobustnessExperimentRunner:
                 all_run_ids.extend([baseline_id] + circuit_ids)
             all_run_ids = list(set(all_run_ids))  # Remove duplicates
             
-            circuit_batch = self._load_circuits_once(all_run_ids)
+            full_circuit_batch = self._load_circuits_once(all_run_ids)
+            
+            # Filter to only include circuits needed for this experiment
+            filtered_circuit_batch = full_circuit_batch.filter(all_run_ids)
             
             # Use the individual experiment class with dict format
-            result = self.jaccard_cross_similarity.run(baseline_run_ids, circuit_batch=circuit_batch)
+            result = self.jaccard_cross_similarity.run(baseline_run_ids, circuit_batch=filtered_circuit_batch)
         else:
             # List format: baseline_run_ids + run_ids
             if run_ids is None:
@@ -140,10 +149,13 @@ class RobustnessExperimentRunner:
             
             # Load circuits for all runs (baselines + run_ids)
             all_run_ids = baseline_run_ids + run_ids
-            circuit_batch = self._load_circuits_once(all_run_ids)
+            full_circuit_batch = self._load_circuits_once(all_run_ids)
+            
+            # Filter to only include circuits needed for this experiment
+            filtered_circuit_batch = full_circuit_batch.filter(all_run_ids)
             
             # Use the individual experiment class with list format
-            result = self.jaccard_cross_similarity.run(baseline_run_ids, run_ids, circuit_batch)
+            result = self.jaccard_cross_similarity.run(baseline_run_ids, run_ids, filtered_circuit_batch)
         
         self.results_manager.save_results(result)
         return result
@@ -154,10 +166,13 @@ class RobustnessExperimentRunner:
             print(f"Running IO-S Distribution Analysis...")
 
         # Load circuits once and reuse
-        circuit_batch = self._load_circuits_once(run_ids)
+        full_circuit_batch = self._load_circuits_once(run_ids)
+        
+        # Filter to only include circuits needed for this experiment
+        filtered_circuit_batch = full_circuit_batch.filter(run_ids)
         
         # Use the individual experiment class (returns result and figure)
-        result, plot_figure = self.io_s_distribution.run(run_ids, circuit_batch)
+        result, plot_figure = self.io_s_distribution.run(run_ids, filtered_circuit_batch)
         
         # Save both the results and the plot
         self.results_manager.save_results(result)

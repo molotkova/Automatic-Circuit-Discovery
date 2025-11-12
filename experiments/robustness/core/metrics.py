@@ -65,41 +65,6 @@ class MetricComputer:
         )
         return metrics["test_logit_diff"]
 
-    def _filter_circuit_batch(self, circuit_batch: CircuitBatch, run_ids: List[str]) -> CircuitBatch:
-        """
-        Filter a circuit batch to only include circuits for the specified run_ids.
-        
-        Args:
-            circuit_batch: Full circuit batch to filter
-            run_ids: List of run IDs to keep in the filtered batch
-            
-        Returns:
-            Filtered CircuitBatch containing only the specified circuits
-        """
-        # Check that all requested run_ids exist in the batch
-        missing_ids = [run_id for run_id in run_ids if run_id not in circuit_batch.circuits]
-        if missing_ids:
-            raise ValueError(f"Run IDs not found in circuit batch: {missing_ids}")
-        
-        # Filter circuits and metadata
-        filtered_circuits = {run_id: circuit_batch.circuits[run_id] for run_id in run_ids}
-        filtered_metadata = {run_id: circuit_batch.run_metadata[run_id] for run_id in run_ids}
-        
-        # Create new filtered batch with same experiment setup
-        filtered_batch = CircuitBatch(
-            circuits=filtered_circuits,
-            experiment=circuit_batch.experiment,
-            things=circuit_batch.things,
-            run_metadata=filtered_metadata,
-            config=circuit_batch.config,
-            timestamp=circuit_batch.timestamp,
-        )
-        
-        if self.config.verbose:
-            print(f"Filtered circuit batch: {len(circuit_batch.circuits)} -> {len(filtered_circuits)} circuits")
-        
-        return filtered_batch
-
     def compute_logit_differences(
         self, circuit_batch: CircuitBatch, run_ids: List[str]
     ) -> Dict[str, float]:
@@ -107,7 +72,7 @@ class MetricComputer:
         Compute logit differences for each circuit in the batch.
 
         Args:
-            circuit_batch: CircuitBatch containing circuits and experiment setup
+            circuit_batch: CircuitBatch containing circuits and experiment setup 
             run_ids: List of run IDs to compute logit differences for
 
         Returns:
@@ -116,18 +81,15 @@ class MetricComputer:
         if self.config.verbose:
             print("Computing logit differences...")
 
-        # Filter circuit batch to only include requested run_ids
-        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, run_ids)
-
         # Ensure corrupted cache is set up
-        filtered_circuit_batch.experiment.setup_corrupted_cache()
+        circuit_batch.experiment.setup_corrupted_cache()
 
         # Compute for each circuit
         logit_diffs = {}
-        for run_id in filtered_circuit_batch.run_ids:
-            circuit = filtered_circuit_batch.get_circuit(run_id)
+        for run_id in run_ids:
+            circuit = circuit_batch.get_circuit(run_id)
             logit_diffs[run_id] = self._compute_logit_diff_for_circuit(
-                circuit, filtered_circuit_batch, run_id
+                circuit, circuit_batch, run_id
             )
 
         if self.config.verbose:
@@ -142,7 +104,7 @@ class MetricComputer:
         Compute pairwise Jaccard indices between all circuits.
 
         Args:
-            circuit_batch: CircuitBatch containing circuits
+            circuit_batch: CircuitBatch containing circuits 
             run_ids: List of run IDs to compute pairwise Jaccard indices for
 
         Returns:
@@ -151,18 +113,15 @@ class MetricComputer:
         if self.config.verbose:
             print("Computing pairwise Jaccard indices...")
 
-        # Filter circuit batch to only include requested run_ids
-        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, run_ids)
-
         pairwise_results = {}
 
         for i, run_id1 in enumerate(run_ids):
             pairwise_results[run_id1] = {}
-            circuit1 = filtered_circuit_batch.get_circuit(run_id1)
+            circuit1 = circuit_batch.get_circuit(run_id1)
 
             for j, run_id2 in enumerate(run_ids):
                 if i <= j:  # Only compute upper triangle + diagonal
-                    circuit2 = filtered_circuit_batch.get_circuit(run_id2)
+                    circuit2 = circuit_batch.get_circuit(run_id2)
 
                     # Compute Jaccard indices
                     jaccard_edges = compute_jaccard_index_edges(circuit1, circuit2)
@@ -204,20 +163,16 @@ class MetricComputer:
         if self.config.verbose:
             print(f"Computing baseline Jaccard indices with {baseline_run_id}...")
 
-        # Include baseline in the filtering
-        all_run_ids = [baseline_run_id] + run_ids
-        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
-
-        if baseline_run_id not in filtered_circuit_batch.run_ids:
+        if baseline_run_id not in circuit_batch.run_ids:
             raise ValueError(
                 f"Baseline run ID {baseline_run_id} not found in circuit batch"
             )
 
-        baseline_circuit = filtered_circuit_batch.get_circuit(baseline_run_id)
+        baseline_circuit = circuit_batch.get_circuit(baseline_run_id)
         baseline_results = {}
 
         for run_id in run_ids:
-            circuit = filtered_circuit_batch.get_circuit(run_id)
+            circuit = circuit_batch.get_circuit(run_id)
             # Compute Jaccard indices
             jaccard_edges = compute_jaccard_index_edges(baseline_circuit, circuit)
             jaccard_nodes = compute_jaccard_index_nodes(baseline_circuit, circuit)
@@ -251,19 +206,15 @@ class MetricComputer:
         if self.config.verbose:
             print(f"Computing multiple baseline Jaccard indices with {len(baseline_run_ids)} baselines...")
 
-        # Include all baselines in the filtering
-        all_run_ids = baseline_run_ids + run_ids
-        filtered_circuit_batch = self._filter_circuit_batch(circuit_batch, all_run_ids)
-
         # Validate all baseline IDs exist
-        missing_baselines = [bid for bid in baseline_run_ids if bid not in filtered_circuit_batch.run_ids]
+        missing_baselines = [bid for bid in baseline_run_ids if bid not in circuit_batch.run_ids]
         if missing_baselines:
             raise ValueError(f"Baseline run IDs not found in circuit batch: {missing_baselines}")
 
         all_results = {}
         
         for baseline_run_id in baseline_run_ids:
-            baseline_results = self.compute_baseline_jaccard_indices(baseline_run_id, filtered_circuit_batch, run_ids)
+            baseline_results = self.compute_baseline_jaccard_indices(baseline_run_id, circuit_batch, run_ids)
             all_results[baseline_run_id] = baseline_results
 
         if self.config.verbose:

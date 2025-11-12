@@ -134,6 +134,38 @@ class CircuitBatch:
             raise KeyError(f"Run ID {run_id} not found in metadata")
         return self.run_metadata[run_id]
 
+    def filter(self, run_ids: List[str]) -> "CircuitBatch":
+        """
+        Create a filtered CircuitBatch containing only the specified run_ids.
+        
+        Args:
+            run_ids: List of run IDs to include in the filtered batch
+            
+        Returns:
+            New CircuitBatch containing only the specified circuits
+        """
+        # Check that all requested run_ids exist
+        missing_ids = [run_id for run_id in run_ids if run_id not in self.circuits]
+        if missing_ids:
+            raise ValueError(f"Run IDs not found in circuit batch: {missing_ids}")
+        
+        # Filter circuits, metadata, and seeds
+        filtered_circuits = {run_id: self.circuits[run_id] for run_id in run_ids}
+        filtered_metadata = {run_id: self.run_metadata[run_id] for run_id in run_ids}
+        filtered_dataset_seeds = {run_id: self.dataset_seeds.get(run_id) for run_id in run_ids} if self.dataset_seeds else None
+        filtered_perturbation_seeds = {run_id: self.perturbation_seeds.get(run_id) for run_id in run_ids} if self.perturbation_seeds else None
+        
+        return CircuitBatch(
+            circuits=filtered_circuits,
+            experiment=self.experiment,
+            things=self.things,
+            run_metadata=filtered_metadata,
+            config=self.config,
+            timestamp=self.timestamp,
+            dataset_seeds=filtered_dataset_seeds,
+            perturbation_seeds=filtered_perturbation_seeds,
+        )
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization (excluding non-serializable objects)."""
         return {
