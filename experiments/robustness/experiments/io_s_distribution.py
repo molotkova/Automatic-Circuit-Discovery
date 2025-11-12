@@ -293,6 +293,8 @@ class IOSDistributionAnalysis:
             },
             timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
             config=self.config.to_dict(),
+            dataset_seeds={run_id: circuit_batch.dataset_seeds.get(run_id) for run_id in run_ids} if circuit_batch.dataset_seeds else None,
+            perturbation_seeds={run_id: circuit_batch.perturbation_seeds.get(run_id) for run_id in run_ids} if circuit_batch.perturbation_seeds else None,
         )
 
         if self.config.verbose:

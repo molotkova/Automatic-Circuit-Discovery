@@ -4,6 +4,7 @@ from pathlib import Path
 import traceback
 import gc
 import torch
+import wandb
 
 import sys
 
@@ -141,6 +142,22 @@ class CircuitLoader:
 
         return metadata
 
+    def _get_run_config_seeds(self, run_id: str) -> Tuple[Optional[Any], Optional[Any]]:
+        """
+        Extract dataset_seed and perturbation_seed from wandb run config.
+
+        Args:
+            run_id: W&B run ID
+
+        Returns:
+            Tuple of (dataset_seed, perturbation_seed) from run config
+        """
+        api = wandb.Api()
+        run = api.run(f"{self.config.project_name}/{run_id}")
+        dataset_seed = run.config.get("dataset_seed")
+        perturbation_seed = run.config.get("perturbation_seed")
+        return dataset_seed, perturbation_seed
+
     def load_circuits_batch(self, run_ids: List[str]) -> CircuitBatch:
         """
         Load multiple circuits in a single batch with shared experiment setup.
@@ -166,11 +183,18 @@ class CircuitLoader:
 
         circuits: Dict[str, Any] = {}
         run_metadata: Dict[str, Dict[str, Any]] = {}
+        dataset_seeds: Dict[str, Any] = {}
+        perturbation_seeds: Dict[str, Any] = {}
 
         for run_id in run_ids:
             correspondence = self._load_single_circuit(run_id, things, exp)
             circuits[run_id] = correspondence
             run_metadata[run_id] = self._get_run_metadata(run_id, correspondence)
+            
+            # Extract seeds from wandb run config
+            dataset_seed, perturbation_seed = self._get_run_config_seeds(run_id)
+            dataset_seeds[run_id] = dataset_seed
+            perturbation_seeds[run_id] = perturbation_seed
 
         success_count = len(circuits)
         load_time = time.time() - start_time
@@ -186,6 +210,8 @@ class CircuitLoader:
             run_metadata=run_metadata,
             config=self.config,
             timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+            dataset_seeds=dataset_seeds if dataset_seeds else None,
+            perturbation_seeds=perturbation_seeds if perturbation_seeds else None,
         )
 
         return batch

@@ -97,6 +97,8 @@ class CircuitBatch:
     run_metadata: Dict[str, Dict[str, Any]]  # run_id -> metadata
     config: ExperimentConfig
     timestamp: str
+    dataset_seeds: Optional[Dict[str, Any]] = None  # run_id -> dataset_seed
+    perturbation_seeds: Optional[Dict[str, Any]] = None  # run_id -> perturbation_seed
 
     def __post_init__(self):
         if not self.circuits:
@@ -159,6 +161,8 @@ class ExperimentResult:
     timestamp: str
     config: Dict[str, Any]
     computation_time: float = 0.0
+    dataset_seeds: Optional[Dict[str, Any]] = None
+    perturbation_seeds: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         """Post-initialization validation."""
