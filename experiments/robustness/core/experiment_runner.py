@@ -216,11 +216,12 @@ class RobustnessExperimentRunner:
 
         results = []
 
-        # Run experiments 1 & 2 (no baseline needed)
+        # Run experiments with no baseline needed
         results.append(self.run_logit_difference_analysis(run_ids))
         results.append(self.run_pairwise_jaccard_similarity(run_ids))
+        results.append(self.run_io_s_distribution(run_ids))
 
-        # Run experiment 3 (requires baseline)
+        # Run experiments that require baseline
         if baseline_run_ids:
             results.append(
                 self.run_jaccard_cross_similarity(baseline_run_ids, run_ids)
