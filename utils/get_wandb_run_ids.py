@@ -6,6 +6,8 @@ from typing import Optional, Dict, Any
 from dotenv import load_dotenv
 load_dotenv()
 
+from utils import filter_distinct_wandb_runs_by_key
+
 def parse_date(date_str: str) -> str:
     """
     Parse a date string and return it in ISO 8601 format for wandb API.
@@ -181,6 +183,7 @@ def main():
     parser.add_argument("--max-runs", type=int, default=None, help="Maximum number of runs to fetch")
     parser.add_argument("--start-date", default=None, help="Start date for filtering runs (YYYY-MM-DD or ISO format)")
     parser.add_argument("--end-date", default=None, help="End date for filtering runs (YYYY-MM-DD or ISO format)")
+    parser.add_argument("--filter-distinct-by-key", default=None, help="Filter to keep only runs with unique values for the given attribute path (e.g., 'config.dataset_seed')")
     parser.add_argument("--output", default=None, help="Output file to write run IDs (one per line). If not set, prints to stdout.")
 
     args = parser.parse_args()
@@ -188,6 +191,10 @@ def main():
     filters = parse_filter(args.filter)
     run_ids = get_run_ids(args.entity, args.project, filters=filters, max_runs=args.max_runs, 
                           start_date=args.start_date, end_date=args.end_date)
+
+    if args.filter_distinct_by_key:
+        project_name = f"{args.entity}/{args.project}"
+        run_ids = filter_distinct_wandb_runs_by_key(run_ids, args.filter_distinct_by_key, project_name)
 
     if args.output:
         with open(args.output, "w") as f:

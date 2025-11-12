@@ -25,6 +25,66 @@ class AcdcRunCandidate:
     corr: TLACDCCorrespondence
 
 
+def _get_nested_attribute(obj: Any, attr_path: str) -> Any:
+    """
+    Get a nested attribute value from an object using dot notation.
+    Supports both attribute access and dictionary access.
+    
+    Args:
+        obj: The object to get the attribute from
+        attr_path: Dot-separated path to the attribute (e.g., "config.dataset_seed")
+    
+    Returns:
+        The value at the attribute path
+    """
+    parts = attr_path.split(".")
+    current = obj
+    for part in parts:
+        if isinstance(current, dict):
+            current = current[part]
+        else:
+            current = getattr(current, part)
+    return current
+
+
+def filter_distinct_wandb_runs_by_key(
+    run_ids: List[str],
+    attribute_path: str,
+    project_name: str,
+) -> List[str]:
+    """
+    Filter run IDs to keep only runs with unique values for a given attribute.
+    
+    For runs with the same attribute value, only the first encountered run ID
+    is kept in the result.
+    
+    Args:
+        run_ids: List of W&B run IDs to filter
+        attribute_path: Dot-separated path to the attribute (e.g., "config.dataset_seed")
+        project_name: W&B project name. Format: "entity/project" or "project"
+    
+    Returns:
+        List of run IDs where each has a unique value for the specified attribute
+    """
+    if not run_ids:
+        return []
+    
+    api = wandb.Api()
+    
+    seen_values: Dict[Any, str] = {}  # value -> first run_id with that value
+    result_run_ids: List[str] = []
+    
+    for run_id in run_ids:
+        run = api.run(f"{project_name}/{run_id}")
+        value = _get_nested_attribute(run, attribute_path)
+        
+        if value not in seen_values:
+            seen_values[value] = run_id
+            result_run_ids.append(run_id)
+    
+    return result_run_ids
+
+
 def get_acdc_runs(
     exp,
     things,
