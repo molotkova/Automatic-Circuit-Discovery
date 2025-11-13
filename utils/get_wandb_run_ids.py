@@ -110,7 +110,7 @@ def parse_filter(filter_str):
     Examples:
     - 'config.perturbation=swap_dataset_roles,config.dataset_seed=2'
     - 'config.dataset_seed=2,3,4,5'
-    - 'config.perturbation=shuffle_abc_prompts,add_random_prefixes'
+    - 'config.perturbation=add_random_prefixes,config.dataset_seed=10,11,12,13,14,config.perturbation_seed=42'
     - 'config.perturbation=None'  # Filter for no perturbation
     """
     if not filter_str:
@@ -136,25 +136,42 @@ def parse_filter(filter_str):
     if current_item.strip():
         items.append(current_item.strip())
     
+    # Process items, handling continuation of values for the same key
+    current_key = None
+    current_values = []
+    
     for item in items:
-        if "=" not in item:
-            continue
-        k, v = item.split("=", 1)
-        k = k.strip()
-        v = v.strip()
-        
-        # Check if value contains comma-separated values
-        if "," in v:
-            # Parse as list of values
-            value_list = []
-            for val in v.split(","):
-                val = val.strip()
-                parsed_val = _parse_value(val)
-                value_list.append(parsed_val)
-            filter_dict[k] = value_list
+        if "=" in item:
+            # Save previous key-value pair if exists
+            if current_key is not None:
+                if len(current_values) > 1:
+                    # Use $in operator for multiple values
+                    filter_dict[current_key] = {"$in": current_values}
+                else:
+                    # Single value
+                    filter_dict[current_key] = current_values[0] if current_values else None
+            
+            # Start new key-value pair
+            k, v = item.split("=", 1)
+            current_key = k.strip()
+            v = v.strip()
+            current_values = [_parse_value(v)]
+        else:
+            # Continuation of previous key's value list
+            if current_key is None:
+                # Skip items without a key (shouldn't happen in valid input)
+                continue
+            parsed_val = _parse_value(item.strip())
+            current_values.append(parsed_val)
+    
+    # Save last key-value pair
+    if current_key is not None:
+        if len(current_values) > 1:
+            # Use $in operator for multiple values
+            filter_dict[current_key] = {"$in": current_values}
         else:
             # Single value
-            filter_dict[k] = _parse_value(v)
+            filter_dict[current_key] = current_values[0] if current_values else None
     
     return filter_dict
 
