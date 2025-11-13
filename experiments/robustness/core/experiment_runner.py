@@ -172,7 +172,7 @@ class RobustnessExperimentRunner:
         filtered_circuit_batch = full_circuit_batch.filter(run_ids)
         
         # Use the individual experiment class (returns result and figure)
-        result, plot_figure = self.io_s_distribution.run(run_ids, filtered_circuit_batch)
+        result, plot_figure = self.io_s_distribution.run(run_ids, filtered_circuit_batch, verbose_plot=True)
         
         # Save both the results and the plot
         self.results_manager.save_results(result)

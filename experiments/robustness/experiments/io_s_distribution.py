@@ -125,7 +125,11 @@ class IOSDistributionAnalysis:
     def _create_violin_plot(
         self,
         all_io_logits: List[float],
-        all_s_logits: List[float]
+        all_s_logits: List[float],
+        perturbation_name: str,
+        verbose_plot: bool = False,
+        dataset_seeds: Optional[Dict[str, Any]] = None,
+        perturbation_seeds: Optional[Dict[str, Any]] = None
     ) -> Figure:
         """
         Create violin plot for IO and S token logit distributions.
@@ -133,6 +137,10 @@ class IOSDistributionAnalysis:
         Args:
             all_io_logits: List of all IO logit values across all circuits
             all_s_logits: List of all S logit values across all circuits
+            perturbation_name: Name of the perturbation (e.g., "add random prefixes")
+            verbose_plot: If True, add text box with unique seed values
+            dataset_seeds: Dictionary mapping run_id to dataset_seed (already filtered to runs in plot)
+            perturbation_seeds: Dictionary mapping run_id to perturbation_seed (already filtered to runs in plot)
         
         Returns:
             Matplotlib figure object
@@ -161,16 +169,41 @@ class IOSDistributionAnalysis:
             data=data,
             x='Token',
             y='Logit Value',
+            hue='Token',
             palette=[color_mapping['IO'], color_mapping['S']],
             inner='box',  # Show box plot inside violin
-            cut=0  # Extend to include min/max values
+            cut=0,  # Extend to include min/max values
+            legend=False  # Hide legend since we're using hue for coloring only
         )
         
         # Customize plot
         plt.xlabel('Token', fontsize=12, fontfamily='sans-serif')
         plt.ylabel('Logit Value', fontsize=12, fontfamily='sans-serif')
-        plt.title('IO and S Token Logit Distributions', fontsize=14, fontfamily='sans-serif')
+        plt.title(f'IO and S Token Logit Distributions - {perturbation_name}', fontsize=14, fontfamily='sans-serif')
         plt.grid(axis='y', alpha=0.3, linestyle='--')
+        
+        # Add text box with unique seed values if verbose_plot is True
+        if verbose_plot and (dataset_seeds is not None or perturbation_seeds is not None):
+            # Get unique values (seeds are already filtered to only include runs in the plot)
+            unique_dataset_seeds = sorted(set(v for v in (dataset_seeds or {}).values() if v is not None))
+            unique_perturbation_seeds = sorted(set(v for v in (perturbation_seeds or {}).values() if v is not None))
+            
+            # Build text box content
+            text_lines = []
+            if unique_dataset_seeds:
+                text_lines.append(f"Dataset seeds: {', '.join(map(str, unique_dataset_seeds))}")
+            if unique_perturbation_seeds:
+                text_lines.append(f"Perturbation seeds: {', '.join(map(str, unique_perturbation_seeds))}")
+            
+            if text_lines:
+                text_content = '\n'.join(text_lines)
+                # Add text box in upper left corner
+                ax.text(0.02, 0.98, text_content, 
+                       transform=ax.transAxes,
+                       fontsize=9,
+                       verticalalignment='top',
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+                       fontfamily='sans-serif')
         
         # Set font for tick labels
         ax.tick_params(labelsize=10)
@@ -184,13 +217,14 @@ class IOSDistributionAnalysis:
         
         return fig
 
-    def run(self, run_ids: List[str], circuit_batch: CircuitBatch = None) -> tuple[ExperimentResult, Figure]:
+    def run(self, run_ids: List[str], circuit_batch: CircuitBatch = None, verbose_plot: bool = False) -> tuple[ExperimentResult, Figure]:
         """
         Run the IO-S distribution analysis experiment.
 
         Args:
             run_ids: List of W&B run IDs to analyze
             circuit_batch: Optional pre-loaded circuit batch for caching
+            verbose_plot: If True, add text box with unique seed values to the plot
 
         Returns:
             Tuple of (ExperimentResult, matplotlib figure) - ResultsManager will handle saving the figure
@@ -257,9 +291,31 @@ class IOSDistributionAnalysis:
                 if self.config.verbose:
                     print(f"  Extracted {len(logits_dict['io_logits'])} logits for circuit {run_id}")
 
+        # Format perturbation name for display
+        perturbation_display_map = {
+            "add_random_prefixes": "add random prefixes",
+            "shuffle_abc_prompts": "shuffle abc prompts",
+            "swap_dataset_roles": "swap dataset roles",
+            None: "no perturbation"
+        }
+        perturbation_name = perturbation_display_map.get(self.config.perturbation, self.config.perturbation or "no perturbation")
+        
+        # Filter dataset_seeds and perturbation_seeds to only include successfully processed run_ids
+        # (only runs that are in run_results, i.e., runs that contributed to the plot)
+        successfully_processed_ids = list(run_results.keys())
+        filtered_dataset_seeds = {rid: circuit_batch.dataset_seeds.get(rid) for rid in successfully_processed_ids if circuit_batch.dataset_seeds and rid in circuit_batch.dataset_seeds} if circuit_batch.dataset_seeds else None
+        filtered_perturbation_seeds = {rid: circuit_batch.perturbation_seeds.get(rid) for rid in successfully_processed_ids if circuit_batch.perturbation_seeds and rid in circuit_batch.perturbation_seeds} if circuit_batch.perturbation_seeds else None
+        
         # Create violin plot figure (ResultsManager will handle saving)
         plot_filename = f"io_s_distribution_{self.config.perturbation or 'none'}.png"
-        plot_figure = self._create_violin_plot(all_io_logits, all_s_logits)
+        plot_figure = self._create_violin_plot(
+            all_io_logits, 
+            all_s_logits,
+            perturbation_name=perturbation_name,
+            verbose_plot=verbose_plot,
+            dataset_seeds=filtered_dataset_seeds,
+            perturbation_seeds=filtered_perturbation_seeds
+        )
 
         # Compute statistics
         summary_stats = {
